@@ -365,7 +365,7 @@ def main():
                     json.dump(seats_won_for_democrats, f, ensure_ascii=False, indent=4)
                 nx.write_gpickle(proposal_graph, output_directory + '/' + "_highest_score_graph", pickle.HIGHEST_PROTOCOL)
                 f= open(output_directory + "/max_score_data.txt","w+")
-                f.write("Validated Mean Seats for Republicans: " + str(validated_seat_score) + "\n" + "Edges changed: " + str(len(special_faces)) + "\n" + "Pre-validation Seats: " + str(seat_score) + '\n' "Baseline Seats: " + str(base_score))
+                f.write("Validated Mean Seats for Republicans: " + str(validated_seat_score) + "\n" + "Edges changed: " + str(len(special_faces)) + "\n" + "Pre-validation Seats: " + str(seat_score) + '\n' "Baseline Seats: " + str(base_score) + '\n' + "Step" + str(i) )
                 f.close()
                 save_obj(special_faces, output_directory + '/', "special_faces")
                 plt.plot(range(len(chain_output['score'])), chain_output['score'])
@@ -477,7 +477,7 @@ if __name__ ==  '__main__':
         "ASSIGN_COL" : "part",
         "POP_COL" : "population",
         'SIERPINSKI_POP_STYLE': 'random',
-        'GERRYCHAIN_STEPS' : 500,
+        'GERRYCHAIN_STEPS' : 1500,
         'CHAIN_STEPS' : 4500,
         'BASELINE_STEPS': 10000,
         "NUM_DISTRICTS": 13,
