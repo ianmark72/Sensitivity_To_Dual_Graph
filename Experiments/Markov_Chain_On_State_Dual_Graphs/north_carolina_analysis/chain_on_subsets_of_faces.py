@@ -208,6 +208,7 @@ def main():
         RuntimeError if PROPOSAL_TYPE of config file is neither 'sierpinski'
         nor 'convex'
     """
+    print(config)
     output_directory = createDirectory(config)
     epsilon = config["epsilon"]
     k = config["NUM_DISTRICTS"]
@@ -283,11 +284,13 @@ def main():
                         special_faces_proposal.remove(face)
             face_sierpinski_mesh(proposal_graph, special_faces_proposal)
         elif(config["PROPOSAL_TYPE"] == "add_edge"):
+            change_ctr = 0
             for j in range(math.floor(len(square_faces) * config['PERCENT_FACES'])):
                 face = random.choice(square_faces)
                 ##Makes the Markov chain lazy -- this just makes the chain aperiodic.
                 if random.random() > .5:
                     if not (face in special_faces_proposal):
+                        change_ctr += 1
                         special_faces_proposal.add(face)
                     else:
                         special_faces_proposal.remove(face)
@@ -370,10 +373,11 @@ def main():
                 plt.ylabel("Score")
                 plot_name = output_directory + '/' + 'score'+ '.png'
                 plt.savefig(plot_name)
+                plt.close()
                 plt.plot(range(len(chain_output['acceptance_probability'])), chain_output['acceptance_probability'])
                 plt.xlabel("Meta-Chain Step")
                 plt.ylabel("Acceptance Probability")
-                plot_name = output_directory + '/' + 'probability'+ '.png'
+                plot_name = output_directory + '/' + 'max_score_probability'+ '.png'
                 plt.savefig(plot_name)
 
 
@@ -384,7 +388,11 @@ def main():
         #     beta = (i / math.floor(steps * .67)) * 100
         # temperature = 1 / (beta)
         #set up basic temperature cooling, linear decrease
-        temperature =  (steps * -.7) + 1000
+        #temperature function
+        #\ 50\left(\exp\left(\operatorname{mod}\left(x,1500\right)\ \cdot\ -\frac{5}{1500}\right)-\ \exp\left(-5\right)\right)
+        temperature =  50 * ((math.exp( (i % 1500) * -(5/1500))) - math.exp(-5))
+        #acceptance probability 
+        # y\ =\ (\exp(s)/\exp(l))^{\left(1/x)\right)}\ 
         # weight_seats = config['WEIGHT_SEATS'] = 1
         # weight_flips = config['WEIGHT_FLIPS'] = 1
         # flip_score = len(special_faces) 
@@ -395,6 +403,7 @@ def main():
             acceptance_criteria = (math.exp(score) / math.exp(chain_output['score'][-1]))**(1/temperature)
         else:
             acceptance_criteria = 1
+        print ("step ", i , "acceptance probability ", acceptance_criteria)
         ##This is the acceptance step of the Metropolis-Hasting's algorithm. Specifically, rand < min(1, P(x')/P(x)), where P is the energy and x' is proposed state
         #if the acceptance criteria is met or if it is the first step of the chain
 
@@ -413,6 +422,7 @@ def main():
                 """
             for key in chain_output.keys():
                 chain_output[key].append(chain_output[key][-1])
+        print("Chain prbability so far: ", chain_output["acceptance_probability"] )
         #this is the simplified form of the acceptance criteria, for intuitive purposes
         #exp((1/temperature) ( proposal_score - previous_score))
         if np.random.uniform(0,1) < acceptance_criteria:
@@ -422,12 +432,13 @@ def main():
         else:
             #reject changes
             reject_state()
-    plt.plot(range(len(chain_output['acceptance_probability'])), chain_output['acceptance_probability'])
-    plt.xlabel("Meta-Chain Step")
-    plt.ylabel("Acceptance Probability")
-    plot_name = output_directory + '/' + 'probability'+ '.png'
-    plt.savefig(plot_name)
-    #save_obj(chain_output, output_directory, "chain_output")
+        if i % 1500 == 0:
+            plt.plot(range(len(chain_output['acceptance_probability'])), chain_output['acceptance_probability'])
+            plt.xlabel("Meta-Chain Step")
+            plt.ylabel("Acceptance Probability")
+            plot_name = output_directory + '/' + 'overall_chain_probability'+ '.png'
+            plt.savefig(plot_name)
+   #save_obj(chain_output, output_directory, "chain_output")
 def createDirectory(config):
     """Creates experiment directory to track experiment configuration information and output.
     Written by Matt Karramann.
@@ -466,12 +477,12 @@ if __name__ ==  '__main__':
         "ASSIGN_COL" : "part",
         "POP_COL" : "population",
         'SIERPINSKI_POP_STYLE': 'random',
-        'GERRYCHAIN_STEPS' : 5,
-        'CHAIN_STEPS' : 99,
-        'BASELINE_STEPS': 10,
+        'GERRYCHAIN_STEPS' : 500,
+        'CHAIN_STEPS' : 4500,
+        'BASELINE_STEPS': 10000,
         "NUM_DISTRICTS": 13,
         'STATE_NAME': 'north_carolina',
-        'PERCENT_FACES': .05,
+        'PERCENT_FACES': 1,
         'PROPOSAL_TYPE': "add_edge",
         'epsilon': .01,
         "EXPERIMENT_NAME" : 'experiments/north_carolina/edge_proposal',
