@@ -493,7 +493,7 @@ if __name__ ==  '__main__':
         'METADATA_FILE' : "experiment_data",
         'WEIGHT_SEATS' : 0,
         'WEIGHT_FLIPS' : 0,
-        'EXPERIMENT_ID': str(datetime.now())
+        'EXPERIMENT_START': str(datetime.now())
     }
     # Seanna: so in here the number of districts is 12 (maybe we want to revise it?)
     main()
