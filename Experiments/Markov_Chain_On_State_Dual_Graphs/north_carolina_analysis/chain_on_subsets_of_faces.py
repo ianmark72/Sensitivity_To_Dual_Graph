@@ -393,6 +393,7 @@ def main():
         #\ 50\left(\exp\left(\operatorname{mod}\left(x,1500\right)\ \cdot\ -\frac{5}{1500}\right)-\ \exp\left(-5\right)\right)
         if (i == 50) and (score + .1 < (threshold_to_beat - .1)):
             print("resetting temp counter, score ", score, "failed to pass threshold", (threshold_to_beat - .1))
+            tmp_ctr = 0
         temperature =  50 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
         tmp_ctr += 1
         #acceptance probability 
