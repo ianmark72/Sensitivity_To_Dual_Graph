@@ -32,7 +32,7 @@ from gerrychain.proposals import recom
 from gerrychain.metrics import mean_median, efficiency_gap
 from gerrychain.tree import recursive_tree_part, bipartition_tree_random, PopulatedGraph
 from collections import defaultdict
-
+import time
 def face_sierpinski_mesh(graph, special_faces):
     """'Sierpinskifies' certain faces of the graph by adding nodes and edges to
     certain faces.
@@ -270,6 +270,7 @@ def main():
     #start with small score to move in right direction
     max_score = -math.inf
     #this is the meta-chain, which modifies the graph and measures the distribution change 
+    tmp_ctr = 0
     for i in range(1,steps+1):
         special_faces_proposal = copy.deepcopy(special_faces)
         proposal_graph = copy.deepcopy(graph)
@@ -390,7 +391,10 @@ def main():
         #set up basic temperature cooling, linear decrease
         #temperature function
         #\ 50\left(\exp\left(\operatorname{mod}\left(x,1500\right)\ \cdot\ -\frac{5}{1500}\right)-\ \exp\left(-5\right)\right)
-        temperature =  50 * ((math.exp( (i % 1500) * -(5/1500))) - math.exp(-5))
+        if (i == 50) and (score + .1 < (threshold_to_beat - .1)):
+            print("resetting temp counter, score ", score, "failed to pass threshold", (threshold_to_beat - .1))
+        temperature =  50 * ((math.exp( (t % 1500) * -(5/1500))) - math.exp(-5))
+        tmp_ctr += 1
         #acceptance probability 
         # y\ =\ (\exp(s)/\exp(l))^{\left(1/x)\right)}\ 
         # weight_seats = config['WEIGHT_SEATS'] = 1
@@ -488,7 +492,8 @@ if __name__ ==  '__main__':
         "EXPERIMENT_NAME" : 'experiments/north_carolina/edge_proposal',
         'METADATA_FILE' : "experiment_data",
         'WEIGHT_SEATS' : 0,
-        'WEIGHT_FLIPS' : 0
+        'WEIGHT_FLIPS' : 0,
+        'EXPERIMENT_ID': hex(int(time.time()))
     }
     # Seanna: so in here the number of districts is 12 (maybe we want to revise it?)
     main()
