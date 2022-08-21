@@ -32,7 +32,7 @@ from gerrychain.proposals import recom
 from gerrychain.metrics import mean_median, efficiency_gap
 from gerrychain.tree import recursive_tree_part, bipartition_tree_random, PopulatedGraph
 from collections import defaultdict
-import time
+from datetime import datetime
 def face_sierpinski_mesh(graph, special_faces):
     """'Sierpinskifies' certain faces of the graph by adding nodes and edges to
     certain faces.
@@ -393,7 +393,7 @@ def main():
         #\ 50\left(\exp\left(\operatorname{mod}\left(x,1500\right)\ \cdot\ -\frac{5}{1500}\right)-\ \exp\left(-5\right)\right)
         if (i == 50) and (score + .1 < (threshold_to_beat - .1)):
             print("resetting temp counter, score ", score, "failed to pass threshold", (threshold_to_beat - .1))
-        temperature =  50 * ((math.exp( (t % 1500) * -(5/1500))) - math.exp(-5))
+        temperature =  50 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
         tmp_ctr += 1
         #acceptance probability 
         # y\ =\ (\exp(s)/\exp(l))^{\left(1/x)\right)}\ 
@@ -493,7 +493,7 @@ if __name__ ==  '__main__':
         'METADATA_FILE' : "experiment_data",
         'WEIGHT_SEATS' : 0,
         'WEIGHT_FLIPS' : 0,
-        'EXPERIMENT_ID': hex(int(time.time()))
+        'EXPERIMENT_ID': str(datetime.now())
     }
     # Seanna: so in here the number of districts is 12 (maybe we want to revise it?)
     main()
