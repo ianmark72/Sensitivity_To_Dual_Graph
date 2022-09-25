@@ -33,6 +33,10 @@ from gerrychain.metrics import mean_median, efficiency_gap
 from gerrychain.tree import recursive_tree_part, bipartition_tree_random, PopulatedGraph
 from collections import defaultdict
 from datetime import datetime
+import time
+from concurrent.futures import ProcessPoolExecutor
+import logging 
+
 def face_sierpinski_mesh(graph, special_faces):
     """'Sierpinskifies' certain faces of the graph by adding nodes and edges to
     certain faces.
@@ -186,6 +190,57 @@ def preprocessing(path_to_json, output_directory):
 
     return graph, dual
 
+def validate_map(seat_score, popbound, k, proposal_graph, special_faces, base_score, chain_output, tree_proposal, initial_partition, graph, step, thread_directory):
+    output_directory = thread_directory
+    exp_chain = MarkovChain(tree_proposal, Validator([popbound]), accept=accept.always_accept,
+                        initial_state=initial_partition, total_steps=config['BASELINE_STEPS'])
+    seats_won_for_republicans = []
+    seats_won_for_democrats = []
+    for part in exp_chain:
+        rep_seats_won = 0
+        dem_seats_won = 0
+        for j in range(k):
+            rep_votes = 0
+            dem_votes = 0
+            for n in graph.nodes():
+                if part.assignment[n] == j:
+                    rep_votes += graph.nodes[n]["EL16G_PR_R"]
+                    dem_votes += graph.nodes[n]["EL16G_PR_D"]
+            total_seats_dem = int(dem_votes > rep_votes)
+            total_seats_rep = int(rep_votes > dem_votes)
+            rep_seats_won += total_seats_rep
+            dem_seats_won += total_seats_dem
+        seats_won_for_republicans.append(rep_seats_won)
+        seats_won_for_democrats.append(dem_seats_won)
+    validated_seat_score  = statistics.mean(seats_won_for_republicans)
+    # add .1 to ensure substantial
+    #print("Found Validated Score of: ", validated_seat_score, " at step: ", i,)
+    with open(output_directory + '/rep_seats.json', 'w', encoding='utf-8') as f:
+        json.dump(seats_won_for_republicans, f, ensure_ascii=False, indent=4)
+    with open(output_directory + '/dem_seats.json', 'w', encoding='utf-8') as f: 
+        json.dump(seats_won_for_democrats, f, ensure_ascii=False, indent=4)
+    nx.write_gpickle(proposal_graph, output_directory + '/' + "_highest_score_graph", pickle.HIGHEST_PROTOCOL)
+    f= open(output_directory + "/max_score_data.txt","w+")
+    f.write("Validated Mean Seats for Republicans: " + str(validated_seat_score) + "\n" + "Edges changed: " + str(len(special_faces)) + "\n" + "Pre-validation Seats: " + str(seat_score) + '\n' "Baseline Seats: " + str(base_score) + '\n' + "Step " + str(step) +'\n' + "Experiment start: " + config["EXPERIMENT_START"])
+    f.close()
+    save_obj(special_faces, output_directory + '/', "special_faces")
+    try:
+        plt.plot(range(len(chain_output['score'])), chain_output['score'])
+        plt.xlabel("Meta-Chain Step")
+        plt.ylabel("Score")
+        plot_name = output_directory + '/' + 'score'+ '.png'
+        plt.savefig(plot_name)
+        plt.close()
+        plt.plot(range(len(chain_output['acceptance_probability'])), chain_output['acceptance_probability'])
+        plt.xlabel("Meta-Chain Step")
+        plt.ylabel("Acceptance Probability")
+        plot_name = output_directory + '/' + 'max_score_probability'+ '.png'
+        plt.savefig(plot_name)
+    except:
+        print("Error plotting")
+        
+    #logging.info("Thread %s: completed", step)
+
 
 def save_fig(graph, path, size):
     """Saves graph to file in desired formed
@@ -200,6 +255,13 @@ def save_fig(graph, path, size):
     # Gets format from end of filename
     plt.savefig(path, format=path.split('.')[-1])
     plt.close()
+def test_process(seat_score, popbound, k, proposal_graph, special_faces, base_score, chain_output, tree_proposal, initial_partition, graph, step,thread_directory):
+    output_directory = thread_directory
+    print("Validation    : Entered process, output dir: %s", output_directory)
+    with open(output_directory + "/max_score_data.txt","w+") as f:
+        f.write("Validated Mean Seats for Republicans: " + str(8) + "\n" + "Edges changed: " + str(77) + "\n" + "Pre-validation Seats: " + str(9) + '\n' "Baseline Seats: " + str(9) + '\n' + "Step " + str(100) +'\n' + "Experiment start: " + config["EXPERIMENT_START"])
+        f.flush()
+
 
 def main():
     """ Contains majority of expermiment. Runs a markov chain on the state dual graph, determining how the distribution is affected to changes in the
@@ -208,9 +270,11 @@ def main():
         RuntimeError if PROPOSAL_TYPE of config file is neither 'sierpinski'
         nor 'convex'
     """
-    print(config)
     output_directory = createDirectory(config)
-    epsilon = config["epsilon"]
+    format = "%(asctime)s: %(message)s"
+    logging.basicConfig(format=format, level=logging.INFO,datefmt="%H:%M:%S")
+    logging.info("Main    : Configurations: %s", config)
+    epsilon = config["METACHAIN_EPSILON"]
     k = config["NUM_DISTRICTS"]
     updaters = {'population': Tally('population'),
                             'cut_edges': cut_edges,
@@ -239,103 +303,81 @@ def main():
     tree_proposal = partial(recom, pop_col=config['POP_COL'], pop_target=ideal_population, epsilon=epsilon,
                                 node_repeats=1)
 
-    print("computing baseline seats")
+    logging.info("Main    : Computing Baseline Seats")
     #Calculate baseline score to get a sense of the typical distribution 
-    exp_chain = MarkovChain(tree_proposal, Validator([popbound]), accept=accept.always_accept,
-                            initial_state=initial_partition, total_steps=config['BASELINE_STEPS'])
-    seats_won_for_republicans = []
-    seats_won_for_democrats = []
-    for part in exp_chain:
-        rep_seats_won = 0
-        dem_seats_won = 0
-        for j in range(k):
-            rep_votes = 0
-            dem_votes = 0
-            for n in graph.nodes():
-                if part.assignment[n] == j:
-                    rep_votes += graph.nodes[n]["EL16G_PR_R"]
-                    dem_votes += graph.nodes[n]["EL16G_PR_D"]
-            total_seats_dem = int(dem_votes > rep_votes)
-            total_seats_rep = int(rep_votes > dem_votes)
-            rep_seats_won += total_seats_rep
-            dem_seats_won += total_seats_dem
-        seats_won_for_republicans.append(rep_seats_won)
-        seats_won_for_democrats.append(dem_seats_won)
+    # exp_chain = MarkovChain(tree_proposal, Validator([popbound]), accept=accept.always_accept,
+    #                         initial_state=initial_partition, total_steps=config['BASELINE_STEPS'])
+    # seats_won_for_republicans = []
+    # seats_won_for_democrats = []
+    # for part in exp_chain:
+    #     rep_seats_won = 0
+    #     dem_seats_won = 0
+    #     for j in range(k):
+    #         rep_votes = 0
+    #         dem_votes = 0
+    #         for n in graph.nodes():
+    #             if part.assignment[n] == j:
+    #                 rep_votes += graph.nodes[n]["EL16G_PR_R"]
+    #                 dem_votes += graph.nodes[n]["EL16G_PR_D"]
+    #         total_seats_dem = int(dem_votes > rep_votes)
+    #         total_seats_rep = int(rep_votes > dem_votes)
+    #         rep_seats_won += total_seats_rep
+    #         dem_seats_won += total_seats_dem
+    #     seats_won_for_republicans.append(rep_seats_won)
+    #     seats_won_for_democrats.append(dem_seats_won)
 
-    base_score  = statistics.mean(seats_won_for_republicans)
-    threshold_to_beat = base_score
-    print("Baseline Seats: ", base_score)
+    #base_score  = statistics.mean(seats_won_for_republicans)
+    base_score = config['BASE_SCORE']
+    threshold_to_beat = base_score + .1 
+    logging.info("Main    : Baseline Seats: %s", base_score)
     special_faces = set( [ face for face in square_faces if np.random.uniform(0,1) < .5 ] )
     chain_output = defaultdict(list)
     #start with small score to move in right direction
     max_score = -math.inf
     #this is the meta-chain, which modifies the graph and measures the distribution change 
     tmp_ctr = 0
-    for i in range(1,steps+1):
-        special_faces_proposal = copy.deepcopy(special_faces)
-        proposal_graph = copy.deepcopy(graph)
-        if (config["PROPOSAL_TYPE"] == "sierpinski"):
-            for i in range(math.floor(len(faces) * config['PERCENT_FACES'])):
-                face = random.choice(faces)
-                ##Makes the Markov chain lazy -- this just makes the chain aperiodic.
-                if random.random() > .5:
-                    if not (face in special_faces_proposal):
-                        special_faces_proposal.append(face)
-                    else:
-                        special_faces_proposal.remove(face)
-            face_sierpinski_mesh(proposal_graph, special_faces_proposal)
-        elif(config["PROPOSAL_TYPE"] == "add_edge"):
-            change_ctr = 0
-            for j in range(math.floor(len(square_faces) * config['PERCENT_FACES'])):
-                face = random.choice(square_faces)
-                ##Makes the Markov chain lazy -- this just makes the chain aperiodic.
-                if random.random() > .5:
-                    if not (face in special_faces_proposal):
-                        change_ctr += 1
-                        special_faces_proposal.add(face)
-                    else:
-                        special_faces_proposal.remove(face)
-            add_edge_proposal(proposal_graph, special_faces_proposal)
-        else:
-            raise RuntimeError('PROPOSAL TYPE must be "sierpinski" or "convex"')
+    with ProcessPoolExecutor() as executor:
+        futures = []
+        for i in range(1,steps+1):
+            special_faces_proposal = copy.deepcopy(special_faces)
+            proposal_graph = copy.deepcopy(graph)
+            if (config["PROPOSAL_TYPE"] == "sierpinski"):
+                for i in range(math.floor(len(faces) * config['PERCENT_FACES'])):
+                    face = random.choice(faces)
+                    ##Makes the Markov chain lazy -- this just makes the chain aperiodic.
+                    if random.random() > .5:
+                        if not (face in special_faces_proposal):
+                            special_faces_proposal.append(face)
+                        else:
+                            special_faces_proposal.remove(face)
+                face_sierpinski_mesh(proposal_graph, special_faces_proposal)
+            elif(config["PROPOSAL_TYPE"] == "add_edge"):
+                change_ctr = 0
+                for j in range(math.floor(len(square_faces) * config['PERCENT_FACES'])):
+                    face = random.choice(square_faces)
+                    ##Makes the Markov chain lazy -- this just makes the chain aperiodic.
+                    if random.random() > .5:
+                        if not (face in special_faces_proposal):
+                            change_ctr += 1
+                            special_faces_proposal.add(face)
+                        else:
+                            special_faces_proposal.remove(face)
+                add_edge_proposal(proposal_graph, special_faces_proposal)
+            else:
+                raise RuntimeError('PROPOSAL TYPE must be "sierpinski" or "convex"')
 
-        initial_partition = Partition(proposal_graph, assignment=config['ASSIGN_COL'], updaters=updaters)
-
-
-        # Sets up Markov chain
-        popbound = within_percent_of_ideal_population(initial_partition, epsilon)
-        tree_proposal = partial(recom, pop_col=config['POP_COL'], pop_target=ideal_population, epsilon=epsilon,
-                                    node_repeats=1)
+            initial_partition = Partition(proposal_graph, assignment=config['ASSIGN_COL'], updaters=updaters)
 
 
-        #make new function -- this computes the energy of the current map
-        exp_chain = MarkovChain(tree_proposal, Validator([popbound]), accept=accept.always_accept,
-                                initial_state=initial_partition, total_steps=gerrychain_steps)
-        seats_won_for_republicans = []
-        seats_won_for_democrats = []
-        for part in exp_chain:
-            rep_seats_won = 0
-            dem_seats_won = 0
-            for j in range(k):
-                rep_votes = 0
-                dem_votes = 0
-                for n in graph.nodes():
-                    if part.assignment[n] == j:
-                        rep_votes += graph.nodes[n]["EL16G_PR_R"]
-                        dem_votes += graph.nodes[n]["EL16G_PR_D"]
-                total_seats_dem = int(dem_votes > rep_votes)
-                total_seats_rep = int(rep_votes > dem_votes)
-                rep_seats_won += total_seats_rep
-                dem_seats_won += total_seats_dem
-            seats_won_for_republicans.append(rep_seats_won)
-            seats_won_for_democrats.append(dem_seats_won)
+            # Sets up Markov chain
+            popbound = within_percent_of_ideal_population(initial_partition, epsilon)
+            tree_proposal = partial(recom, pop_col=config['POP_COL'], pop_target=ideal_population, epsilon=epsilon,
+                                        node_repeats=1)
 
-        seat_score  = statistics.mean(seats_won_for_republicans)
-        # If the map we have found beats the baseline map, run gerrychain for longer to see distribution
-        if seat_score > threshold_to_beat:
-            print("Found potential map of score: ", seat_score, " Current Threshold: ", threshold_to_beat, hash(frozenset(special_faces_proposal)))
+
+            #make new function -- this computes the energy of the current map
             exp_chain = MarkovChain(tree_proposal, Validator([popbound]), accept=accept.always_accept,
-                                initial_state=initial_partition, total_steps=config['BASELINE_STEPS'])
+                                    initial_state=initial_partition, total_steps=gerrychain_steps)
             seats_won_for_republicans = []
             seats_won_for_democrats = []
             for part in exp_chain:
@@ -354,95 +396,89 @@ def main():
                     dem_seats_won += total_seats_dem
                 seats_won_for_republicans.append(rep_seats_won)
                 seats_won_for_democrats.append(dem_seats_won)
-            validated_seat_score  = statistics.mean(seats_won_for_republicans)
-            if validated_seat_score > threshold_to_beat:
-                # add .1 to ensure substantial
-                threshold_to_beat = validated_seat_score + .1
-                print("Found Validated Score of: ", validated_seat_score, " at step: ", i,)
-                output_directory = createDirectory(config)
-                with open(output_directory + '/rep_seats.json', 'w', encoding='utf-8') as f:
-                    json.dump(seats_won_for_republicans, f, ensure_ascii=False, indent=4)
-                with open(output_directory + '/dem_seats.json', 'w', encoding='utf-8') as f: 
-                    json.dump(seats_won_for_democrats, f, ensure_ascii=False, indent=4)
-                nx.write_gpickle(proposal_graph, output_directory + '/' + "_highest_score_graph", pickle.HIGHEST_PROTOCOL)
-                f= open(output_directory + "/max_score_data.txt","w+")
-                f.write("Validated Mean Seats for Republicans: " + str(validated_seat_score) + "\n" + "Edges changed: " + str(len(special_faces)) + "\n" + "Pre-validation Seats: " + str(seat_score) + '\n' "Baseline Seats: " + str(base_score) + '\n' + "Step" + str(i) )
-                f.close()
-                save_obj(special_faces, output_directory + '/', "special_faces")
-                plt.plot(range(len(chain_output['score'])), chain_output['score'])
-                plt.xlabel("Meta-Chain Step")
-                plt.ylabel("Score")
-                plot_name = output_directory + '/' + 'score'+ '.png'
-                plt.savefig(plot_name)
-                plt.close()
+
+            seat_score  = statistics.mean(seats_won_for_republicans)
+            # If the map we have found beats the baseline map, run gerrychain for longer to see distribution
+            if seat_score > threshold_to_beat:
+                logging.info("Main    : Found potential map of score: %s Current Threshold: %s starting validation thread %s", seat_score, threshold_to_beat, i)
+                #print("Found potential map of score: ", seat_score, " Current Threshold: ", threshold_to_beat, "Starting validation")
+                thread_directory = createDirectory(config)
+                # futures.append(executor.submit(test_process, int(seat_score), within_percent_of_ideal_population(initial_partition, config['VALIDATION_EPSILON']), int(k), copy.deepcopy(proposal_graph), copy.deepcopy(special_faces), float(base_score), copy.deepcopy(chain_output), partial(recom, pop_col=config['POP_COL'], pop_target=ideal_population, epsilon=config['VALIDATION_EPSILON'],
+                #                         node_repeats=1), initial_partition, copy.deepcopy(graph), int(i),thread_directory))
+                validate_map(int(seat_score), within_percent_of_ideal_population(initial_partition, config['VALIDATION_EPSILON']), int(k), copy.deepcopy(proposal_graph), copy.deepcopy(special_faces), float(base_score), copy.deepcopy(chain_output), partial(recom, pop_col=config['POP_COL'], pop_target=ideal_population, epsilon=config['VALIDATION_EPSILON'],
+                                        node_repeats=1), initial_partition, copy.deepcopy(graph), int(i),thread_directory)
+                # x = Thread(target=validate_map, args=(int(seat_score), within_percent_of_ideal_population(initial_partition, config['VALIDATION_EPSILON']), int(k), copy.deepcopy(proposal_graph), copy.deepcopy(special_faces), float(base_score), copy.deepcopy(chain_output), partial(recom, pop_col=config['POP_COL'], pop_target=ideal_population, epsilon=config['VALIDATION_EPSILON'],
+                #                         node_repeats=1), initial_partition, copy.deepcopy(graph), int(i)))
+                #x.start()
+                logging.info("Main    : Validation thread %s started", i )
+                #validate_map(int(seat_score), within_percent_of_ideal_population(initial_partition, epsilon), int(k), copy.deepcopy(proposal_graph), copy.deepcopy(special_faces), int(base_score),copy.deepcopy(chain_output), partial(recom, pop_col=config['POP_COL'], pop_target=ideal_population, epsilon=epsilon,
+                                        #node_repeats=1), initial_partition, copy.deepcopy(graph), int(i))
+
+
+            #implement modified mattingly simulated annealing scheme, from evaluating partisan gerrymandering in wisconsin
+            # if i <= math.floor(steps * .67):
+            #     beta = i / math.floor(steps * .67)
+            # else:
+            #     beta = (i / math.floor(steps * .67)) * 100
+            # temperature = 1 / (beta)
+            #set up basic temperature cooling, linear decrease
+            #temperature function
+            #\ 50\left(\exp\left(\operatorname{mod}\left(x,1500\right)\ \cdot\ -\frac{5}{1500}\right)-\ \exp\left(-5\right)\right)
+            if (i == 50) and (score + .1 < (threshold_to_beat - .1)):
+                logging.info("Main    : resetting temp counter, score %s failed to pass threshold: %s starting validation thread %s", score, (threshold_to_beat - .1))
+            # print("resetting temp counter, score ", score, "failed to pass threshold", (threshold_to_beat - .1))
+                tmp_ctr = 0
+            temperature =  50 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
+            tmp_ctr += 1
+            #acceptance probability 
+            # y\ =\ (\exp(s)/\exp(l))^{\left(1/x)\right)}\ 
+            # weight_seats = config['WEIGHT_SEATS'] = 1
+            # weight_flips = config['WEIGHT_FLIPS'] = 1
+            # flip_score = len(special_faces) 
+            # This is the number of edges being swapped
+            #score = weight_seats * seat_score + weight_flips *  flip_score
+            score = seat_score
+            if i != 1:
+                acceptance_criteria = (math.exp(score) / math.exp(chain_output['score'][-1]))**(1/temperature)
+            else:
+                acceptance_criteria = 1
+            logging.info("Main    : Step , %s , acceptance probability : %s", i, acceptance_criteria)
+            #print ("step ", i , "acceptance probability ", acceptance_criteria)
+            ##This is the acceptance step of the Metropolis-Hasting's algorithm. Specifically, rand < min(1, P(x')/P(x)), where P is the energy and x' is proposed state
+            #if the acceptance criteria is met or if it is the first step of the chain
+
+            def accept_state():
+                """ Accept the next state of the meta-chain and update the chain output with the proposed changes.
+                    To track any new information during the chain add a key to the dictionary and append the desired information.
+                    """
+                #chain_output['dem_seat_data'].append(seats_won_for_democrats)
+                #chain_output['rep_seat_data'].append(seats_won_for_republicans)
+                chain_output['score'].append(score)
+                #chain_output['seat_score'].append(seat_score)
+                chain_output['acceptance_probability'].append(acceptance_criteria)
+                #chain_output['flip_score'].append(flip_score)
+            def reject_state():
+                """ Reject the next state of the meta-chain and propogate the current state of the meta-chain
+                    """
+                for key in chain_output.keys():
+                    chain_output[key].append(chain_output[key][-1])
+            #logging.info("Main    :Chain probability so far: , %s", chain_output["acceptance_probability"])
+            #print("Chain prbability so far: ", chain_output["acceptance_probability"] )
+            #this is the simplified form of the acceptance criteria, for intuitive purposes
+            #exp((1/temperature) ( proposal_score - previous_score))
+            if np.random.uniform(0,1) < acceptance_criteria:
+                #accept changes
+                accept_state()
+                special_faces = copy.deepcopy(special_faces_proposal)
+            else:
+                #reject changes
+                reject_state()
+            if i % 1500 == 0:
                 plt.plot(range(len(chain_output['acceptance_probability'])), chain_output['acceptance_probability'])
                 plt.xlabel("Meta-Chain Step")
                 plt.ylabel("Acceptance Probability")
-                plot_name = output_directory + '/' + 'max_score_probability'+ '.png'
+                plot_name = output_directory + '/' + 'overall_chain_probability'+ '.png'
                 plt.savefig(plot_name)
-
-
-        #implement modified mattingly simulated annealing scheme, from evaluating partisan gerrymandering in wisconsin
-        # if i <= math.floor(steps * .67):
-        #     beta = i / math.floor(steps * .67)
-        # else:
-        #     beta = (i / math.floor(steps * .67)) * 100
-        # temperature = 1 / (beta)
-        #set up basic temperature cooling, linear decrease
-        #temperature function
-        #\ 50\left(\exp\left(\operatorname{mod}\left(x,1500\right)\ \cdot\ -\frac{5}{1500}\right)-\ \exp\left(-5\right)\right)
-        if (i == 50) and (score + .1 < (threshold_to_beat - .1)):
-            print("resetting temp counter, score ", score, "failed to pass threshold", (threshold_to_beat - .1))
-            tmp_ctr = 0
-        temperature =  50 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
-        tmp_ctr += 1
-        #acceptance probability 
-        # y\ =\ (\exp(s)/\exp(l))^{\left(1/x)\right)}\ 
-        # weight_seats = config['WEIGHT_SEATS'] = 1
-        # weight_flips = config['WEIGHT_FLIPS'] = 1
-        # flip_score = len(special_faces) 
-        # This is the number of edges being swapped
-        #score = weight_seats * seat_score + weight_flips *  flip_score
-        score = seat_score
-        if i != 1:
-            acceptance_criteria = (math.exp(score) / math.exp(chain_output['score'][-1]))**(1/temperature)
-        else:
-            acceptance_criteria = 1
-        print ("step ", i , "acceptance probability ", acceptance_criteria)
-        ##This is the acceptance step of the Metropolis-Hasting's algorithm. Specifically, rand < min(1, P(x')/P(x)), where P is the energy and x' is proposed state
-        #if the acceptance criteria is met or if it is the first step of the chain
-
-        def accept_state():
-            """ Accept the next state of the meta-chain and update the chain output with the proposed changes.
-                To track any new information during the chain add a key to the dictionary and append the desired information.
-                """
-            #chain_output['dem_seat_data'].append(seats_won_for_democrats)
-            #chain_output['rep_seat_data'].append(seats_won_for_republicans)
-            chain_output['score'].append(score)
-            #chain_output['seat_score'].append(seat_score)
-            chain_output['acceptance_probability'].append(acceptance_criteria)
-            #chain_output['flip_score'].append(flip_score)
-        def reject_state():
-            """ Reject the next state of the meta-chain and propogate the current state of the meta-chain
-                """
-            for key in chain_output.keys():
-                chain_output[key].append(chain_output[key][-1])
-        print("Chain prbability so far: ", chain_output["acceptance_probability"] )
-        #this is the simplified form of the acceptance criteria, for intuitive purposes
-        #exp((1/temperature) ( proposal_score - previous_score))
-        if np.random.uniform(0,1) < acceptance_criteria:
-            #accept changes
-            accept_state()
-            special_faces = copy.deepcopy(special_faces_proposal)
-        else:
-            #reject changes
-            reject_state()
-        if i % 1500 == 0:
-            plt.plot(range(len(chain_output['acceptance_probability'])), chain_output['acceptance_probability'])
-            plt.xlabel("Meta-Chain Step")
-            plt.ylabel("Acceptance Probability")
-            plot_name = output_directory + '/' + 'overall_chain_probability'+ '.png'
-            plt.savefig(plot_name)
    #save_obj(chain_output, output_directory, "chain_output")
 def createDirectory(config):
     """Creates experiment directory to track experiment configuration information and output.
@@ -451,7 +487,7 @@ def createDirectory(config):
         config file for experiment
     """
     num = 0
-    suffix = lambda x: f'-{x}' if x != 0 else ''
+    suffix = lambda x: f'/{x}' if x != 0 else ''
     while os.path.exists(config['EXPERIMENT_NAME'] + suffix(num)):
         num += 1
     os.makedirs(config['EXPERIMENT_NAME'] + suffix(num))
@@ -482,19 +518,21 @@ if __name__ ==  '__main__':
         "ASSIGN_COL" : "part",
         "POP_COL" : "population",
         'SIERPINSKI_POP_STYLE': 'random',
-        'GERRYCHAIN_STEPS' : 1500,
+        'GERRYCHAIN_STEPS' : 15,
         'CHAIN_STEPS' : 4500,
-        'BASELINE_STEPS': 10000,
+        'BASELINE_STEPS': 10,
         "NUM_DISTRICTS": 13,
         'STATE_NAME': 'north_carolina',
         'PERCENT_FACES': 1,
         'PROPOSAL_TYPE': "add_edge",
-        'epsilon': .01,
-        "EXPERIMENT_NAME" : 'experiments/north_carolina/edge_proposal',
+        'METACHAIN_EPSILON': .1,
+        'VALIDATION_EPSILON': .05,
+        "EXPERIMENT_NAME" : 'experiments/north_carolina/' + str(datetime.now()),
         'METADATA_FILE' : "experiment_data",
         'WEIGHT_SEATS' : 0,
         'WEIGHT_FLIPS' : 0,
-        'EXPERIMENT_START': str(datetime.now())
+        'EXPERIMENT_START': str(datetime.now()),
+        'BASE_SCORE': 7.75
     }
     # Seanna: so in here the number of districts is 12 (maybe we want to revise it?)
     main()
