@@ -35,7 +35,9 @@ from collections import defaultdict
 from datetime import datetime
 import time
 from concurrent.futures import ProcessPoolExecutor
-import logging 
+import logging
+
+from metachain_scores import *
 
 def face_sierpinski_mesh(graph, special_faces):
     """'Sierpinskifies' certain faces of the graph by adding nodes and edges to
@@ -217,7 +219,7 @@ def validate_map(seat_score, popbound, k, proposal_graph, special_faces, base_sc
     #print("Found Validated Score of: ", validated_seat_score, " at step: ", i,)
     with open(output_directory + '/rep_seats.json', 'w', encoding='utf-8') as f:
         json.dump(seats_won_for_republicans, f, ensure_ascii=False, indent=4)
-    with open(output_directory + '/dem_seats.json', 'w', encoding='utf-8') as f: 
+    with open(output_directory + '/dem_seats.json', 'w', encoding='utf-8') as f:
         json.dump(seats_won_for_democrats, f, ensure_ascii=False, indent=4)
     nx.write_gpickle(proposal_graph, output_directory + '/' + "_highest_score_graph", pickle.HIGHEST_PROTOCOL)
     f= open(output_directory + "/max_score_data.txt","w+")
@@ -238,7 +240,7 @@ def validate_map(seat_score, popbound, k, proposal_graph, special_faces, base_sc
         plt.savefig(plot_name)
     except:
         print("Error plotting")
-        
+
     #logging.info("Thread %s: completed", step)
 
 
@@ -294,7 +296,7 @@ def main():
     gerrychain_steps = config["GERRYCHAIN_STEPS"]
     #faces that are currently modified. Code maintains list of modified faces, and at each step selects a face. if face is already in list,
     #the face is un-modified, and if it is not, the face is modified by the specified proposal type.
-    #compute baseline map score 
+    #compute baseline map score
     initial_partition = Partition(graph, assignment=config['ASSIGN_COL'], updaters=updaters)
 
 
@@ -304,7 +306,7 @@ def main():
                                 node_repeats=1)
 
     logging.info("Main    : Computing Baseline Seats")
-    #Calculate baseline score to get a sense of the typical distribution 
+    #Calculate baseline score to get a sense of the typical distribution
     # exp_chain = MarkovChain(tree_proposal, Validator([popbound]), accept=accept.always_accept,
     #                         initial_state=initial_partition, total_steps=config['BASELINE_STEPS'])
     # seats_won_for_republicans = []
@@ -328,13 +330,13 @@ def main():
 
     #base_score  = statistics.mean(seats_won_for_republicans)
     base_score = config['BASE_SCORE']
-    threshold_to_beat = base_score + .1 
+    threshold_to_beat = base_score + .1
     logging.info("Main    : Baseline Seats: %s", base_score)
     special_faces = set( [ face for face in square_faces if np.random.uniform(0,1) < .5 ] )
     chain_output = defaultdict(list)
     #start with small score to move in right direction
     max_score = -math.inf
-    #this is the meta-chain, which modifies the graph and measures the distribution change 
+    #this is the meta-chain, which modifies the graph and measures the distribution change
     tmp_ctr = 0
     with ProcessPoolExecutor() as executor:
         futures = []
@@ -366,38 +368,15 @@ def main():
             else:
                 raise RuntimeError('PROPOSAL TYPE must be "sierpinski" or "convex"')
 
-            initial_partition = Partition(proposal_graph, assignment=config['ASSIGN_COL'], updaters=updaters)
+
+            if config['metachain_score'] == "gerrychain_score":
+                seat_score = gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept)
+
+            if config['metachain_score'] == "test":
+                seat_score = test_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept)
 
 
-            # Sets up Markov chain
-            popbound = within_percent_of_ideal_population(initial_partition, epsilon)
-            tree_proposal = partial(recom, pop_col=config['POP_COL'], pop_target=ideal_population, epsilon=epsilon,
-                                        node_repeats=1)
 
-
-            #make new function -- this computes the energy of the current map
-            exp_chain = MarkovChain(tree_proposal, Validator([popbound]), accept=accept.always_accept,
-                                    initial_state=initial_partition, total_steps=gerrychain_steps)
-            seats_won_for_republicans = []
-            seats_won_for_democrats = []
-            for part in exp_chain:
-                rep_seats_won = 0
-                dem_seats_won = 0
-                for j in range(k):
-                    rep_votes = 0
-                    dem_votes = 0
-                    for n in graph.nodes():
-                        if part.assignment[n] == j:
-                            rep_votes += graph.nodes[n]["EL16G_PR_R"]
-                            dem_votes += graph.nodes[n]["EL16G_PR_D"]
-                    total_seats_dem = int(dem_votes > rep_votes)
-                    total_seats_rep = int(rep_votes > dem_votes)
-                    rep_seats_won += total_seats_rep
-                    dem_seats_won += total_seats_dem
-                seats_won_for_republicans.append(rep_seats_won)
-                seats_won_for_democrats.append(dem_seats_won)
-
-            seat_score  = statistics.mean(seats_won_for_republicans)
             # If the map we have found beats the baseline map, run gerrychain for longer to see distribution
             if seat_score > threshold_to_beat:
                 logging.info("Main    : Found potential map of score: %s Current Threshold: %s starting validation thread %s", seat_score, threshold_to_beat, i)
@@ -430,11 +409,11 @@ def main():
                 tmp_ctr = 0
             temperature =  50 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
             tmp_ctr += 1
-            #acceptance probability 
-            # y\ =\ (\exp(s)/\exp(l))^{\left(1/x)\right)}\ 
+            #acceptance probability
+            # y\ =\ (\exp(s)/\exp(l))^{\left(1/x)\right)}\
             # weight_seats = config['WEIGHT_SEATS'] = 1
             # weight_flips = config['WEIGHT_FLIPS'] = 1
-            # flip_score = len(special_faces) 
+            # flip_score = len(special_faces)
             # This is the number of edges being swapped
             #score = weight_seats * seat_score + weight_flips *  flip_score
             score = seat_score
