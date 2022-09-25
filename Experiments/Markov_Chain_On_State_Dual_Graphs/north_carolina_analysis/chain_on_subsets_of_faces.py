@@ -370,7 +370,7 @@ def main():
 
 
             if config['metachain_score'] == "gerrychain_score":
-                seat_score = gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept)
+                seat_score = gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
 
             if config['metachain_score'] == "test":
                 seat_score = test_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept)

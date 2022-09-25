@@ -39,7 +39,7 @@ import logging
 git pull
 conda activate gerry
 
-to push: 
+to push:
 git add {files_changed}
 git commit -m "comments of changes"
 git pull
@@ -47,7 +47,7 @@ git push
 '''
 
 
-def gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept):
+def gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k):
 
 
 
