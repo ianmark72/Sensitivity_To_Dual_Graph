@@ -35,6 +35,16 @@ import time
 from concurrent.futures import ProcessPoolExecutor
 import logging
 
+'''
+git pull
+conda activate gerry
+
+to push: 
+git add {files_changed}
+git commit -m "comments of changes"
+git pull
+git push
+'''
 
 
 def gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept):
