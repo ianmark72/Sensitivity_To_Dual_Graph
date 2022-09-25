@@ -372,9 +372,11 @@ def main():
             if config['metachain_score'] == "gerrychain_score":
                 seat_score = gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
 
-            if config['metachain_score'] == "test":
+            if config['metachain_score'] == "test_score":
                 seat_score = test_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
 
+            if config['metachain_score'] == "ising_score":
+                seat_score = ising_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
 
 
             # If the map we have found beats the baseline map, run gerrychain for longer to see distribution
@@ -512,7 +514,7 @@ if __name__ ==  '__main__':
         'WEIGHT_FLIPS' : 0,
         'EXPERIMENT_START': str(datetime.now()),
         'BASE_SCORE': 7.75,
-        'metachain_score' : "gerrychain_score"
+        'metachain_score' : "test_score" #"gerrychain_score"
     }
     # Seanna: so in here the number of districts is 12 (maybe we want to revise it?)
     main()

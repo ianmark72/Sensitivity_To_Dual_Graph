@@ -86,6 +86,6 @@ def gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_pop
 
 
 
-def gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k):
+def test_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k):
 
-    return 0
+    return 1
