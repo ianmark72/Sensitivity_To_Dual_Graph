@@ -296,6 +296,7 @@ def main():
     faces = graph.graph["faces"]
     faces = list(faces)
     square_faces = [face for face in faces if len(face) >= 4]
+    all_edges = list(graph.edges())
     totpop = 0
     for node in graph.nodes():
         totpop += int(graph.nodes[node]['population'])
@@ -368,6 +369,8 @@ def main():
 
             #print('num square faces', len(square_faces), len(square_faces) / len(faces) )
             special_faces_proposal = copy.deepcopy(special_faces)
+            special_edges_proposal = copy.deepcopy(all_edges)
+
             proposal_graph = copy.deepcopy(graph)
             if (config["PROPOSAL_TYPE"] == "sierpinski"):
                 for i in range(math.floor(len(faces) * config['PERCENT_FACES'])):
@@ -392,6 +395,20 @@ def main():
                             special_faces_proposal.remove(face)
                 #print("num special faces", len(special_faces_proposal))
                 add_edge_proposal(proposal_graph, special_faces_proposal)
+            elif(config["PROPOSAL_TYPE"] == "delete_edge"):
+                change_ctr = 0
+                for j in range(math.floor(len(all_edges) * config['PERCENT_FACES'])):
+                    edge = random.choice(all_edges)
+                    ##Makes the Markov chain lazy -- this just makes the chain aperiodic.
+                    if random.random() > .5:
+                        if not (edge in special_edges_proposal):
+                            change_ctr += 1
+                            special_edges_proposal.add(edge)
+                        else:
+                            special_edges_proposal.remove(edge)
+                #print("num special faces", len(special_faces_proposal))
+                for e in special_edges_proposal:
+                    proposal_graph.remove_edge(e)
             else:
                 raise RuntimeError('PROPOSAL TYPE must be "sierpinski" or "convex"')
 
@@ -485,6 +502,7 @@ def main():
                 print('accept')
                 accept_state()
                 special_faces = copy.deepcopy(special_faces_proposal)
+                special_edges = copy.deepcopy(special_edges_proposal)
             else:
                 #reject changes
                 print('reject')
@@ -540,7 +558,7 @@ if __name__ ==  '__main__':
         "NUM_DISTRICTS": 13,
         'STATE_NAME': 'north_carolina',
         'PERCENT_FACES': 1,
-        'PROPOSAL_TYPE': "add_edge",
+        'PROPOSAL_TYPE': ["delete_edge", "add_edge"][1],
         'METACHAIN_EPSILON': .1,
         'VALIDATION_EPSILON': .05,
         "EXPERIMENT_NAME" : 'experiments/north_carolina/' + str(datetime.now()),
@@ -549,7 +567,7 @@ if __name__ ==  '__main__':
         'WEIGHT_FLIPS' : 0,
         'EXPERIMENT_START': str(datetime.now()),
         'BASE_SCORE': 7.75,
-        'metachain_score' : "gerrychain_score",  #"test_score" #
+        'metachain_score' : ["gerrychain_score", "test_score", "ising_score"][0],  #"test_score" #
         'optimization_for' : "D"
     }
     # Seanna: so in here the number of districts is 12 (maybe we want to revise it?)
