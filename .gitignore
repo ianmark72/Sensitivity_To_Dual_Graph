@@ -1,1 +1,6 @@
 *.pem
+*.png
+*.json
+*.pkl
+Experiments\Markov_Chain_On_State_Dual_Graphs\north_carolina_analysis\experiments\*.*
+Experiments\Markov_Chain_On_State_Dual_Graphs\north_carolina_analysis\experiments\

@@ -227,26 +227,28 @@ def validate_map(seat_score, popbound, k, proposal_graph, special_faces, base_sc
     validated_seat_score  = statistics.mean(seats_won_for_republicans)
     # add .1 to ensure substantial
     #print("Found Validated Score of: ", validated_seat_score, " at step: ", i,)
-    with open(output_directory + '/rep_seats.json', 'w', encoding='utf-8') as f:
+    with open(os.path.join(output_directory, 'rep_seats.json') , 'w', encoding='utf-8') as f:
         json.dump(seats_won_for_republicans, f, ensure_ascii=False, indent=4)
-    with open(output_directory + '/dem_seats.json', 'w', encoding='utf-8') as f:
+    with open( os.path.join(output_directory, 'dem_seats.json') , 'w', encoding='utf-8') as f:
         json.dump(seats_won_for_democrats, f, ensure_ascii=False, indent=4)
-    nx.write_gpickle(proposal_graph, output_directory + '/' + "_highest_score_graph", pickle.HIGHEST_PROTOCOL)
-    f= open(output_directory + "/max_score_data.txt","w+")
+    nx.write_gpickle(proposal_graph, os.path.join(output_directory, '_highest_score_graph') , pickle.HIGHEST_PROTOCOL)
+    f= open(os.path.join(output_directory, 'max_score_data.txt'),"w+")
     f.write("Validated Mean Seats for Republicans: " + str(validated_seat_score) + "\n" + "Edges changed: " + str(len(special_faces)) + "\n" + "Pre-validation Seats: " + str(seat_score) + '\n' "Baseline Seats: " + str(base_score) + '\n' + "Step " + str(step) +'\n' + "Experiment start: " + config["EXPERIMENT_START"])
     f.close()
-    save_obj(special_faces, output_directory + '/', "special_faces")
+    save_obj(special_faces, output_directory , "special_faces")
     try:
         plt.plot(range(len(chain_output['score'])), chain_output['score'])
         plt.xlabel("Meta-Chain Step")
         plt.ylabel("Score")
-        plot_name = output_directory + '/' + 'score'+ '.png'
+
+
+        plot_name = os.path.join(output_directory, 'score.png')
         plt.savefig(plot_name)
         plt.close()
         plt.plot(range(len(chain_output['acceptance_probability'])), chain_output['acceptance_probability'])
         plt.xlabel("Meta-Chain Step")
         plt.ylabel("Acceptance Probability")
-        plot_name = output_directory + '/' + 'max_score_probability'+ '.png'
+        plot_name = os.path.join(output_directory, 'max_score_probability.png')
         plt.savefig(plot_name)
     except:
         print("Error plotting")
@@ -270,7 +272,7 @@ def save_fig(graph, path, size):
 def test_process(seat_score, popbound, k, proposal_graph, special_faces, base_score, chain_output, tree_proposal, initial_partition, graph, step,thread_directory):
     output_directory = thread_directory
     print("Validation    : Entered process, output dir: %s", output_directory)
-    with open(output_directory + "/max_score_data.txt","w+") as f:
+    with open(os.path.join(output_directory, "max_score_data.txt") ,"w+") as f:
         f.write("Validated Mean Seats for Republicans: " + str(8) + "\n" + "Edges changed: " + str(77) + "\n" + "Pre-validation Seats: " + str(9) + '\n' "Baseline Seats: " + str(9) + '\n' + "Step " + str(100) +'\n' + "Experiment start: " + config["EXPERIMENT_START"])
         f.flush()
 
@@ -513,7 +515,9 @@ def main():
                 plt.plot(range(len(chain_output['acceptance_probability'])), chain_output['acceptance_probability'])
                 plt.xlabel("Meta-Chain Step")
                 plt.ylabel("Acceptance Probability")
-                plot_name = output_directory + '/' + 'overall_chain_probability'+ '.png'
+
+
+                plot_name = os.path.join(output_directory, "overall_chain_probability.png")
                 plt.savefig(plot_name)
    #save_obj(chain_output, output_directory, "chain_output")
 def createDirectory(config):
@@ -533,7 +537,7 @@ def createDirectory(config):
     return config['EXPERIMENT_NAME'] + suffix(num)
 
 def save_obj(obj, output_directory, name):
-    with open(output_directory + '/' + name + '.pkl', 'wb') as f:
+    with open( os.path.join(output_directory,name) + '.pkl', 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
 if __name__ ==  '__main__':
     # parser = argparse.ArgumentParser(description='Runs a metachain on the space of state dual graphs.')
@@ -544,17 +548,17 @@ if __name__ ==  '__main__':
     # args = parser.parse_args()
     global config
     config = {
-        "INPUT_GRAPH_FILENAME" : "./jsons/NC.json",
+        "INPUT_GRAPH_FILENAME" : os.path.join("jsons", "NC.json"),
         "X_POSITION" : "C_X",
         "Y_POSITION" : "C_Y",
         'PARTY_A_COL': "EL16G_PR_R",
         'PARTY_B_COL': "EL16G_PR_D",
-        "UNDERLYING_GRAPH_FILE" : "./plots/UnderlyingGraph.png",
+        "UNDERLYING_GRAPH_FILE" : os.path.join("plots", "UnderlyingGraph.png"),
         "WIDTH" : 1,
         "ASSIGN_COL" : "part",
         "POP_COL" : "population",
         'SIERPINSKI_POP_STYLE': 'random',
-        'GERRYCHAIN_STEPS' : 5000,
+        'GERRYCHAIN_STEPS' : 10,
         'CHAIN_STEPS' : 4500,
         'BASELINE_STEPS': 10,
         "NUM_DISTRICTS": 13,
@@ -563,7 +567,7 @@ if __name__ ==  '__main__':
         'PROPOSAL_TYPE': ["delete_edge", "add_edge"][1],
         'METACHAIN_EPSILON': .2,
         'VALIDATION_EPSILON': .05,
-        "EXPERIMENT_NAME" : 'experiments/north_carolina/' + str(datetime.now()),
+        "EXPERIMENT_NAME" : os.path.join('experiments', 'north_carolina', str(datetime.now()).replace(" ", "").replace(":", "")), #
         'METADATA_FILE' : "experiment_data",
         'WEIGHT_SEATS' : 0,
         'WEIGHT_FLIPS' : 0,
