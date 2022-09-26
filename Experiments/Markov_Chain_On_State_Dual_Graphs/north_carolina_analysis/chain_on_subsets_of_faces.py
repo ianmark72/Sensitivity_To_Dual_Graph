@@ -430,7 +430,7 @@ def main():
             # print("resetting temp counter, score ", score, "failed to pass threshold", (threshold_to_beat - .1))
                 tmp_ctr = 0
             #temperature =  50 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
-            temperature = 1 #for testing
+            temperature = .1 #for testing
             tmp_ctr += 1
             print('temp', temperature)
 
