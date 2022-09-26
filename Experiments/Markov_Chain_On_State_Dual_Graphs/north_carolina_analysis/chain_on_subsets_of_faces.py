@@ -167,7 +167,10 @@ def add_edge_proposal(graph, special_faces):
         added_edge = False
         for vertex in face:
             for itr_vertex in face:
-                print("consiering", vertex, itr_vertex)
+                print("considering", vertex, itr_vertex)
+                print(graph.has_edge(vertex, itr_vertex))
+                print(graph.has_edge(itr_vertex, vertex))
+                print(vertex != vertex)
                 if ((not graph.has_edge(vertex, itr_vertex)) and (not graph.has_edge(itr_vertex, vertex)) and vertex != vertex):
                     print('got here')
                     if not added_edge:
