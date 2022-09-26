@@ -162,12 +162,14 @@ def add_edge_proposal(graph, special_faces):
         special_faces (List): list of four sided faces
     """
     for face in special_faces:
+        added_edge = False
         for vertex in face:
             for itr_vertex in face:
                 if ((not graph.has_edge(vertex, itr_vertex)) and (not graph.has_edge(itr_vertex, vertex)) and vertex != vertex):
-                    graph.add_edge(vertex, itr_vertex)
-                    graph.edges[ (vertex, itr_vertex)] .new = True # For drawing it with a different color later. Todo: check my syntax.
-                    break
+                    if not added_edge:
+                        graph.add_edge(vertex, itr_vertex)
+                        graph.edges[ (vertex, itr_vertex)] .new = True # For drawing it with a different color later. Todo: check my syntax.
+                        added_edge = True
 
 
 def preprocessing(path_to_json, output_directory):
