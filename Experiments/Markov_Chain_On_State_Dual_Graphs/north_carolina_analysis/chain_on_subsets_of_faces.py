@@ -161,7 +161,7 @@ def add_edge_proposal(graph, special_faces):
         graph (Gerrychain Graph): graph in JSON file following cleaning
         special_faces (List): list of four sided faces
     """
-    print('start of add edges')
+    #print('start of add edges')
     for face in special_faces:
         # print("face length", len(face)) # this was fine always 4
         added_edge = False
@@ -176,7 +176,7 @@ def add_edge_proposal(graph, special_faces):
                     if not added_edge:
                         #print("adding", vertex, itr_vertex)
                         graph.add_edge(vertex, itr_vertex)
-                        graph.edges[ (vertex, itr_vertex)]['new'] = True # For drawing it with a different color later. Todo: check my syntax.
+                        graph.edges[ (vertex, itr_vertex)]['new'] = True # For drawing it with a different color later.
                         added_edge = True
 
 
@@ -383,7 +383,7 @@ def main():
                             special_faces_proposal.add(face)
                         else:
                             special_faces_proposal.remove(face)
-                print("num special faces", len(special_faces_proposal))
+                #print("num special faces", len(special_faces_proposal))
                 add_edge_proposal(proposal_graph, special_faces_proposal)
             else:
                 raise RuntimeError('PROPOSAL TYPE must be "sierpinski" or "convex"')
