@@ -88,4 +88,19 @@ def gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_pop
 
 def test_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k):
 
+    def vote_difference(n):
+        # Energy is higher when two nodes with the same vote_difference are connected.
+        # So this will prefer to connect nodes that are similar in to eachother.
+        return graph.nodes[n]["EL16G_PR_R"] - graph.nodes[n]["EL16G_PR_D"]
+    def democrat_votes_only(n):
+        # Energy is higher when two nodes with that have a high proportion of democrat votes  are connected.
+        # So this will prefer to connect nodes that are in densely blue areas.
+        return graph.nodes[n]["EL16G_PR_D"] / ( graph.nodes[n]["EL16G_PR_R"] + graph.nodes[n]["EL16G_PR_D"])
+
+    displacement_energy = 0
+    for n in graph.nodes():
+        graph.nodes[n]["charge"] = vote_difference(n)
+    for e in graph.edges():
+        displacement_energy += graph.nodes[e[0]]["charge"] *  graph.nodes[e[1]]["charge"]
+
     return 1
