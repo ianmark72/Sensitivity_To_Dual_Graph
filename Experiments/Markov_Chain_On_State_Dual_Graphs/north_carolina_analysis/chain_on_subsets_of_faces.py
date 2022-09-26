@@ -567,7 +567,7 @@ if __name__ ==  '__main__':
         'PROPOSAL_TYPE': ["delete_edge", "add_edge"][1],
         'METACHAIN_EPSILON': .2,
         'VALIDATION_EPSILON': .05,
-        "EXPERIMENT_NAME" : os.path.join('experiments', 'north_carolina', str(datetime.now()).replace(" ", "").replace(":", "")), #
+        "EXPERIMENT_NAME" : os.path.join('experiments', 'north_carolina', str(datetime.now()).replace(" ", "").replace(":", "_")), #
         'METADATA_FILE' : "experiment_data",
         'WEIGHT_SEATS' : 0,
         'WEIGHT_FLIPS' : 0,
