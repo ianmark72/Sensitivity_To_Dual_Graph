@@ -86,7 +86,7 @@ def gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_pop
 
 
 
-def test_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k):
+def ising_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k):
 
     def vote_difference(n):
         # Energy is higher when two nodes with the same vote_difference are connected.

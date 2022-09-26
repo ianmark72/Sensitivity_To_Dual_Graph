@@ -330,7 +330,16 @@ def main():
 
     #base_score  = statistics.mean(seats_won_for_republicans)
     base_score = config['BASE_SCORE']
-    threshold_to_beat = base_score + .1
+    if config['metachain_score'] == "gerrychain_score":
+        threshold_to_beat = base_score + .1
+    if config['metachain_score'] == "test_score":
+        threshold_to_beat = 0
+    if config['metachain_score'] == "ising_score":
+        threshold_to_beat = ising_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k) + 1
+
+
+
+
     logging.info("Main    : Baseline Seats: %s", base_score)
     special_faces = set( [ face for face in square_faces if np.random.uniform(0,1) < .5 ] )
     chain_output = defaultdict(list)
@@ -514,7 +523,7 @@ if __name__ ==  '__main__':
         'WEIGHT_FLIPS' : 0,
         'EXPERIMENT_START': str(datetime.now()),
         'BASE_SCORE': 7.75,
-        'metachain_score' : "test_score" #"test_score" #
+        'metachain_score' : "ising_score" #"test_score" #
     }
     # Seanna: so in here the number of districts is 12 (maybe we want to revise it?)
     main()
