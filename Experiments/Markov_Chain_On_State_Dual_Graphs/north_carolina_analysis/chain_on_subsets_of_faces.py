@@ -409,7 +409,7 @@ def main():
                             special_edges_proposal.remove(edge)
                 #print("num special faces", len(special_faces_proposal))
                 for e in special_edges_proposal:
-                    proposal_graph.remove_edge(e)
+                    proposal_graph.remove_edge(e[0], e[1])
             else:
                 raise RuntimeError('PROPOSAL TYPE must be "sierpinski" or "convex"')
 
