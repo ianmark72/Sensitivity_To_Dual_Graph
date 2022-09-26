@@ -433,6 +433,7 @@ def main():
             temperature = 1 #for testing
             tmp_ctr += 1
             print('temp', temperature)
+            print( math.exp(score), math.exp(chain_output['score'][-1]))
             #acceptance probability
             # y\ =\ (\exp(s)/\exp(l))^{\left(1/x)\right)}\
             # weight_seats = config['WEIGHT_SEATS'] = 1
