@@ -469,10 +469,12 @@ def main():
             #exp((1/temperature) ( proposal_score - previous_score))
             if np.random.uniform(0,1) < acceptance_criteria:
                 #accept changes
+                print('accept')
                 accept_state()
                 special_faces = copy.deepcopy(special_faces_proposal)
             else:
                 #reject changes
+                print('reject')
                 reject_state()
             if i % 1500 == 0:
                 plt.plot(range(len(chain_output['acceptance_probability'])), chain_output['acceptance_probability'])
