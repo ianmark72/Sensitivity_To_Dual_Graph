@@ -373,6 +373,7 @@ def main():
                             special_faces_proposal.add(face)
                         else:
                             special_faces_proposal.remove(face)
+                print("num special faces", len(special_faces_proposal))
                 add_edge_proposal(proposal_graph, special_faces_proposal)
             else:
                 raise RuntimeError('PROPOSAL TYPE must be "sierpinski" or "convex"')
