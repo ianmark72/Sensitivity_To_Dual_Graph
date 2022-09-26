@@ -296,7 +296,7 @@ def main():
     faces = graph.graph["faces"]
     faces = list(faces)
     square_faces = [face for face in faces if len(face) >= 4]
-    all_edges = list(graph.edges())
+    all_edges = set(graph.edges())
     totpop = 0
     for node in graph.nodes():
         totpop += int(graph.nodes[node]['population'])
