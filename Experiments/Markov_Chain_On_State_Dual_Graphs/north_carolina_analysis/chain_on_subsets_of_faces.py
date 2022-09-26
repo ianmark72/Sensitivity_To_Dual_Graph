@@ -352,6 +352,7 @@ def main():
 
     logging.info("Main    : Baseline Seats: %s", base_score)
     special_faces = set( [ face for face in square_faces if np.random.uniform(0,1) < .5 ] )
+    print('num square faces', len(square_faces), len(square_faces) / len(faces) )
     chain_output = defaultdict(list)
     #start with small score to move in right direction
     max_score = -math.inf
@@ -429,8 +430,8 @@ def main():
                 logging.info(f"Main    : resetting temp counter, score {score} failed to pass threshold: {(threshold_to_beat - .1)}. starting validation thread %s")
             # print("resetting temp counter, score ", score, "failed to pass threshold", (threshold_to_beat - .1))
                 tmp_ctr = 0
-            #temperature =  50 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
-            temperature = .00001 #for testing
+            temperature =  50 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
+            #temperature = .00001 #for testing
             tmp_ctr += 1
             print('temp', temperature)
 
