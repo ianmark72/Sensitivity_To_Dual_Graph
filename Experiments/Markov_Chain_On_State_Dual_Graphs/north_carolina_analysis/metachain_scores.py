@@ -103,4 +103,4 @@ def test_score(proposal_graph, graph, config, updaters, epsilon, ideal_populatio
     for e in graph.edges():
         displacement_energy += graph.nodes[e[0]]["charge"] *  graph.nodes[e[1]]["charge"]
 
-    return 1
+    return displacement_energy
