@@ -341,7 +341,10 @@ def main():
     #base_score  = statistics.mean(seats_won_for_republicans)
     base_score = config['BASE_SCORE']
     if config['metachain_score'] == "gerrychain_score":
-        threshold_to_beat = base_score + .1
+        if config['optimization_for'] == "R":
+            threshold_to_beat = base_score + .1
+        if config['optimization_for'] == "D":
+            threshold_to_beat = k - base_score + .1
     if config['metachain_score'] == "test_score":
         threshold_to_beat = test_score(graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k) + 10
     if config['metachain_score'] == "ising_score":
@@ -547,6 +550,7 @@ if __name__ ==  '__main__':
         'EXPERIMENT_START': str(datetime.now()),
         'BASE_SCORE': 7.75,
         'metachain_score' : "gerrychain_score" #"test_score" #
+        'optimization_for' : "D"
     }
     # Seanna: so in here the number of districts is 12 (maybe we want to revise it?)
     main()

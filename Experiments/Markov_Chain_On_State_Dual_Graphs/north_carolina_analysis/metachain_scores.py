@@ -81,9 +81,12 @@ def gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_pop
         seats_won_for_republicans.append(rep_seats_won)
         seats_won_for_democrats.append(dem_seats_won)
 
-    seat_score  = statistics.mean(seats_won_for_republicans)
-    seat_score  = statistics.mean(seats_won_for_democrats)
 
+
+    if config['optimization_for'] == "R":
+        seat_score  = statistics.mean(seats_won_for_republicans)
+    if config['optimization_for'] == "D":
+        seat_score  = statistics.mean(seats_won_for_democrats)
     return seat_score
 
 
