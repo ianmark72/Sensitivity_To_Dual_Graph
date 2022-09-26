@@ -87,7 +87,7 @@ def gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_pop
 
 def test_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k):
     print("energy", len(graph.edges()))
-    return np.log(len(graph.edges()))
+    return np.log(len(proposal_graph.edges()))
 
 def ising_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k):
 
