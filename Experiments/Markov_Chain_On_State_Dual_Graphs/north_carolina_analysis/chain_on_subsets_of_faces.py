@@ -385,7 +385,8 @@ def main():
                 face_sierpinski_mesh(proposal_graph, special_faces_proposal)
             elif(config["PROPOSAL_TYPE"] == "add_edge"):
                 change_ctr = 0
-                for j in range(math.floor(len(square_faces) * config['PERCENT_FACES'])):
+                for j in 10: #range(math.floor(len(square_faces) * config['PERCENT_FACES'])):
+                    # As above with percent faces it was making massive steps..
                     face = random.choice(square_faces)
                     ##Makes the Markov chain lazy -- this just makes the chain aperiodic.
                     if random.random() > .5:
@@ -398,7 +399,7 @@ def main():
                 add_edge_proposal(proposal_graph, special_faces_proposal)
             elif(config["PROPOSAL_TYPE"] == "delete_edge"):
                 change_ctr = 0
-                for j in range(math.floor(len(all_edges) * config['PERCENT_FACES'])):
+                for j in range(10): #range(math.floor(len(all_edges) * config['PERCENT_FACES'])):
                     edge = random.choice(all_edges_list)
                     ##Makes the Markov chain lazy -- this just makes the chain aperiodic.
                     if random.random() > .5:
