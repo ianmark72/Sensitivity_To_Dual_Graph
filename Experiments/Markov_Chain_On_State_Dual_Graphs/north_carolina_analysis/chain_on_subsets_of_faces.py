@@ -335,7 +335,7 @@ def main():
     if config['metachain_score'] == "test_score":
         threshold_to_beat = 0
     if config['metachain_score'] == "ising_score":
-        threshold_to_beat = ising_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k) + 1
+        threshold_to_beat = ising_score(graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k) + 1
 
 
 
