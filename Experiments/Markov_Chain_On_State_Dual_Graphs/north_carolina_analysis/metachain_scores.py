@@ -102,5 +102,6 @@ def test_score(proposal_graph, graph, config, updaters, epsilon, ideal_populatio
         graph.nodes[n]["charge"] = vote_difference(n)
     for e in graph.edges():
         displacement_energy += graph.nodes[e[0]]["charge"] *  graph.nodes[e[1]]["charge"]
-
+        
+    print("energy", displacement_energy)
     return displacement_energy
