@@ -176,7 +176,7 @@ def add_edge_proposal(graph, special_faces):
                     if not added_edge:
                         print("adding", vertex, itr_vertex)
                         graph.add_edge(vertex, itr_vertex)
-                        graph.edges[ (vertex, itr_vertex)] .new = True # For drawing it with a different color later. Todo: check my syntax.
+                        graph.edges[ (vertex, itr_vertex)]['new'] = True # For drawing it with a different color later. Todo: check my syntax.
                         added_edge = True
 
 
