@@ -433,7 +433,7 @@ def main():
             temperature = 1 #for testing
             tmp_ctr += 1
             print('temp', temperature)
-            print( math.exp(score), math.exp(chain_output['score'][-1]))
+
             #acceptance probability
             # y\ =\ (\exp(s)/\exp(l))^{\left(1/x)\right)}\
             # weight_seats = config['WEIGHT_SEATS'] = 1
@@ -442,6 +442,8 @@ def main():
             # This is the number of edges being swapped
             #score = weight_seats * seat_score + weight_flips *  flip_score
             score = seat_score
+
+            print( math.exp(score), math.exp(chain_output['score'][-1]))
             if i != 1:
                 acceptance_criteria = (math.exp(score) / math.exp(chain_output['score'][-1]))**(1/temperature)
             else:
