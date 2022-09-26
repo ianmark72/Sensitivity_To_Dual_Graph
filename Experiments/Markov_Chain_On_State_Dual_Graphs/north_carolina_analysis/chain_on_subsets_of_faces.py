@@ -431,6 +431,7 @@ def main():
                 tmp_ctr = 0
             temperature =  50 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
             tmp_ctr += 1
+            print('temp', temperature)
             #acceptance probability
             # y\ =\ (\exp(s)/\exp(l))^{\left(1/x)\right)}\
             # weight_seats = config['WEIGHT_SEATS'] = 1
