@@ -352,7 +352,8 @@ def main():
 
     logging.info("Main    : Baseline Seats: %s", base_score)
     special_faces = set( [ face for face in square_faces if np.random.uniform(0,1) < .5 ] )
-    print('num square faces', len(square_faces), len(square_faces) / len(faces) )
+
+
     chain_output = defaultdict(list)
     #start with small score to move in right direction
     max_score = -math.inf
@@ -361,6 +362,8 @@ def main():
     with ProcessPoolExecutor() as executor:
         futures = []
         for i in range(1,steps+1):
+
+            print('num square faces', len(square_faces), len(square_faces) / len(faces) )
             special_faces_proposal = copy.deepcopy(special_faces)
             proposal_graph = copy.deepcopy(graph)
             if (config["PROPOSAL_TYPE"] == "sierpinski"):
