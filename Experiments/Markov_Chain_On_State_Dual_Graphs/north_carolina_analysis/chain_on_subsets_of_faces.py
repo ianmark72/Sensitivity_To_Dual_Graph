@@ -297,6 +297,7 @@ def main():
     faces = list(faces)
     square_faces = [face for face in faces if len(face) >= 4]
     all_edges = set(graph.edges())
+    all_edges_list = list(all_edges)
     totpop = 0
     for node in graph.nodes():
         totpop += int(graph.nodes[node]['population'])
@@ -398,7 +399,7 @@ def main():
             elif(config["PROPOSAL_TYPE"] == "delete_edge"):
                 change_ctr = 0
                 for j in range(math.floor(len(all_edges) * config['PERCENT_FACES'])):
-                    edge = random.choice(all_edges)
+                    edge = random.choice(all_edges_list)
                     ##Makes the Markov chain lazy -- this just makes the chain aperiodic.
                     if random.random() > .5:
                         if not (edge in special_edges_proposal):
