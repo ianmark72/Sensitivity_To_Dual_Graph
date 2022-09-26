@@ -558,7 +558,7 @@ if __name__ ==  '__main__':
         "NUM_DISTRICTS": 13,
         'STATE_NAME': 'north_carolina',
         'PERCENT_FACES': 1,
-        'PROPOSAL_TYPE': ["delete_edge", "add_edge"][1],
+        'PROPOSAL_TYPE': ["delete_edge", "add_edge"][0],
         'METACHAIN_EPSILON': .1,
         'VALIDATION_EPSILON': .05,
         "EXPERIMENT_NAME" : 'experiments/north_carolina/' + str(datetime.now()),
