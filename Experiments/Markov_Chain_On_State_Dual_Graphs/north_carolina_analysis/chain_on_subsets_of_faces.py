@@ -546,7 +546,7 @@ if __name__ ==  '__main__':
         'WEIGHT_FLIPS' : 0,
         'EXPERIMENT_START': str(datetime.now()),
         'BASE_SCORE': 7.75,
-        'metachain_score' : "test_score" #"test_score" #
+        'metachain_score' : "gerrychain_score" #"test_score" #
     }
     # Seanna: so in here the number of districts is 12 (maybe we want to revise it?)
     main()
