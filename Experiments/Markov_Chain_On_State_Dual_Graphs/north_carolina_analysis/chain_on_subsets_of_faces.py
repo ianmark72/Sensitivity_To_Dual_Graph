@@ -363,7 +363,7 @@ def main():
         futures = []
         for i in range(1,steps+1):
 
-            print('num square faces', len(square_faces), len(square_faces) / len(faces) )
+            #print('num square faces', len(square_faces), len(square_faces) / len(faces) )
             special_faces_proposal = copy.deepcopy(special_faces)
             proposal_graph = copy.deepcopy(graph)
             if (config["PROPOSAL_TYPE"] == "sierpinski"):
@@ -387,7 +387,7 @@ def main():
                             special_faces_proposal.add(face)
                         else:
                             special_faces_proposal.remove(face)
-                print("num special faces", len(special_faces_proposal))
+                #print("num special faces", len(special_faces_proposal))
                 add_edge_proposal(proposal_graph, special_faces_proposal)
             else:
                 raise RuntimeError('PROPOSAL TYPE must be "sierpinski" or "convex"')
@@ -433,7 +433,7 @@ def main():
                 logging.info(f"Main    : resetting temp counter, score {score} failed to pass threshold: {(threshold_to_beat - .1)}. starting validation thread %s")
             # print("resetting temp counter, score ", score, "failed to pass threshold", (threshold_to_beat - .1))
                 tmp_ctr = 0
-            temperature =  50 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
+            temperature =  20 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
             #temperature = .00001 #for testing
             tmp_ctr += 1
             print('temp', temperature)
