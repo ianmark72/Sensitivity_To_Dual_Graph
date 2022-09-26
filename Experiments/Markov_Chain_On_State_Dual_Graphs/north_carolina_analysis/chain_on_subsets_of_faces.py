@@ -295,7 +295,7 @@ def main():
     ideal_population= sum( graph.nodes[x]["population"] for x in graph.nodes())/k
     faces = graph.graph["faces"]
     faces = list(faces)
-    square_faces = [face for face in faces if len(face) == 4]
+    square_faces = [face for face in faces if len(face) >= 4]
     totpop = 0
     for node in graph.nodes():
         totpop += int(graph.nodes[node]['population'])
