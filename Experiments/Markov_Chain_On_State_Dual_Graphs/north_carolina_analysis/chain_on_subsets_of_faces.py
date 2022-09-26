@@ -161,18 +161,20 @@ def add_edge_proposal(graph, special_faces):
         graph (Gerrychain Graph): graph in JSON file following cleaning
         special_faces (List): list of four sided faces
     """
+    print('start of add edges')
     for face in special_faces:
-        print("face length", len(face))
+        # print("face length", len(face)) # this was fine always 4
         added_edge = False
         for vertex in face:
             for itr_vertex in face:
                 #print("consiering", vertex, itr_vertex)
                 if ((not graph.has_edge(vertex, itr_vertex)) and (not graph.has_edge(itr_vertex, vertex)) and vertex != vertex):
-                    #if not added_edge:
-                    print("adding", vertex, itr_vertex)
-                    graph.add_edge(vertex, itr_vertex)
-                    graph.edges[ (vertex, itr_vertex)] .new = True # For drawing it with a different color later. Todo: check my syntax.
-                    added_edge = True
+                    print('got here')
+                    if not added_edge:
+                        print("adding", vertex, itr_vertex)
+                        graph.add_edge(vertex, itr_vertex)
+                        graph.edges[ (vertex, itr_vertex)] .new = True # For drawing it with a different color later. Todo: check my syntax.
+                        added_edge = True
 
 
 def preprocessing(path_to_json, output_directory):
