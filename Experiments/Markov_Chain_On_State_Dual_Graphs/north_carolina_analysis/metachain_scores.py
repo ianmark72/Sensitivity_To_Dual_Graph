@@ -85,6 +85,9 @@ def gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_pop
     return seat_score
 
 
+def test_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k):
+
+    return len(graph.edges())
 
 def ising_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k):
 
@@ -100,7 +103,7 @@ def ising_score(proposal_graph, graph, config, updaters, epsilon, ideal_populati
     displacement_energy = 0
     for n in graph.nodes():
         graph.nodes[n]["charge"] = vote_difference(n)
-    for e in graph.edges():
+    for e in proposal_graph.edges():
         displacement_energy += graph.nodes[e[0]]["charge"] *  graph.nodes[e[1]]["charge"] / 1000
 
     print("energy", displacement_energy)
