@@ -447,9 +447,9 @@ def main():
             #score = weight_seats * seat_score + weight_flips *  flip_score
             score = seat_score
 
-
+            print("current score", score)
             if i != 1:
-                print( math.exp(score), math.exp(chain_output['score'][-1]))
+                #print( math.exp(score), math.exp(chain_output['score'][-1]))
                 acceptance_criteria = (math.exp(score) / math.exp(chain_output['score'][-1]))**(1/temperature)
             else:
                 acceptance_criteria = 1
