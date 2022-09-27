@@ -227,13 +227,19 @@ def validate_map(seat_score, popbound, k, proposal_graph, special_faces, base_sc
     validated_seat_score  = statistics.mean(seats_won_for_republicans)
     # add .1 to ensure substantial
     #print("Found Validated Score of: ", validated_seat_score, " at step: ", i,)
+    if config['optimization_for'] == "R":
+        validated_seat_score = statistics.mean(seats_won_for_republicans)
+    if config['optimization_for'] == "D":
+        validated_seat_score = k - statistics.mean(seats_won_for_democrats)
+
+
     with open(os.path.join(output_directory, 'rep_seats.json') , 'w', encoding='utf-8') as f:
         json.dump(seats_won_for_republicans, f, ensure_ascii=False, indent=4)
     with open( os.path.join(output_directory, 'dem_seats.json') , 'w', encoding='utf-8') as f:
         json.dump(seats_won_for_democrats, f, ensure_ascii=False, indent=4)
     nx.write_gpickle(proposal_graph, os.path.join(output_directory, '_highest_score_graph') , pickle.HIGHEST_PROTOCOL)
     f= open(os.path.join(output_directory, 'max_score_data.txt'),"w+")
-    f.write("Validated Mean Seats for Republicans: " + str(validated_seat_score) + "\n" + "Edges changed: " + str(len(special_faces)) + "\n" + "Pre-validation Seats: " + str(seat_score) + '\n' "Baseline Seats: " + str(base_score) + '\n' + "Step " + str(step) +'\n' + "Experiment start: " + config["EXPERIMENT_START"])
+    f.write(f"Validated Mean Seats for {config['optimization_for']}: " + str(validated_seat_score) + "\n" + "Edges changed: " + str(len(special_faces)) + "\n" + "Pre-validation Seats: " + str(seat_score) + '\n' "Baseline Seats: " + str(base_score) + '\n' + "Step " + str(step) +'\n' + "Experiment start: " + config["EXPERIMENT_START"])
     f.close()
     save_obj(special_faces, output_directory , "special_faces")
     try:
