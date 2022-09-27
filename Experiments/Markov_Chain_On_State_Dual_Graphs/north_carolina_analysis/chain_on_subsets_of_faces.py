@@ -354,7 +354,8 @@ def main():
         if config['optimization_for'] == "R":
             threshold_to_beat = base_score + .5
         if config['optimization_for'] == "D":
-            threshold_to_beat = k - base_score + .5
+            base_score = k - base_score
+            threshold_to_beat = base_score + .5
     if config['metachain_score'] == "test_score":
         threshold_to_beat = test_score(graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k) + 10
     if config['metachain_score'] == "ising_score":
