@@ -346,9 +346,9 @@ def main():
     base_score = config['BASE_SCORE']
     if config['metachain_score'] == "gerrychain_score":
         if config['optimization_for'] == "R":
-            threshold_to_beat = base_score + .1
+            threshold_to_beat = base_score + .5
         if config['optimization_for'] == "D":
-            threshold_to_beat = k - base_score + .1
+            threshold_to_beat = k - base_score + .5
     if config['metachain_score'] == "test_score":
         threshold_to_beat = test_score(graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k) + 10
     if config['metachain_score'] == "ising_score":
@@ -560,7 +560,7 @@ if __name__ ==  '__main__':
         'SIERPINSKI_POP_STYLE': 'random',
         'GERRYCHAIN_STEPS' : 10,
         'CHAIN_STEPS' : 4500,
-        'BASELINE_STEPS': 10,
+        'BASELINE_STEPS': 10000,
         "NUM_DISTRICTS": 13,
         'STATE_NAME': 'north_carolina',
         'PERCENT_FACES': 1,
