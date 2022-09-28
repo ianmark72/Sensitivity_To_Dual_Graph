@@ -460,9 +460,13 @@ def main():
             #set up basic temperature cooling, linear decrease
             #temperature function
             #\ 50\left(\exp\left(\operatorname{mod}\left(x,1500\right)\ \cdot\ -\frac{5}{1500}\right)-\ \exp\left(-5\right)\right)
-            if (i == 50) and (score + .1 < (threshold_to_beat - .1)):
+            if (i == 50) and (score < (threshold_to_beat - .2)):
+                # If sufficiently close top the threshold , keep going
                 logging.info(f"Main    : resetting temp counter, score {score} failed to pass threshold: {(threshold_to_beat - .1)}. starting validation thread %s")
-            # print("resetting temp counter, score ", score, "failed to pass threshold", (threshold_to_beat - .1))
+
+'
+
+'            # print("resetting temp counter, score ", score, "failed to pass threshold", (threshold_to_beat - .1))
                 tmp_ctr = 0
             temperature =  5 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
             #temperature = .00001 #for testing
@@ -483,7 +487,7 @@ def main():
                 #print( math.exp(score), math.exp(chain_output['score'][-1]))
                 acceptance_criteria = (math.exp(score) / math.exp(chain_output['score'][-1]))**(1/temperature)
             else:
-                acceptance_criteria = 1
+                acceptance_criteria = (math.exp(score) / math.exp(base_score))**(1/temperature)
             logging.info("Main    : Step , %s , acceptance probability : %s", i, acceptance_criteria)
             #print ("step ", i , "acceptance probability ", acceptance_criteria)
             ##This is the acceptance step of the Metropolis-Hasting's algorithm. Specifically, rand < min(1, P(x')/P(x)), where P is the energy and x' is proposed state
