@@ -460,11 +460,13 @@ def main():
             #set up basic temperature cooling, linear decrease
             #temperature function
             #\ 50\left(\exp\left(\operatorname{mod}\left(x,1500\right)\ \cdot\ -\frac{5}{1500}\right)-\ \exp\left(-5\right)\right)
-            if (i == 50) and (score < (threshold_to_beat - .2)):
+
+            restart_time = 5000
+            if (i == restart_time) and (score < (threshold_to_beat - .2)):
                 logging.info(f"Main    : resetting temp counter, score {score} failed to pass threshold: {(threshold_to_beat - .1)}. starting validation thread %s")
             # print("resetting temp counter, score ", score, "failed to pass threshold", (threshold_to_beat - .1))
                 tmp_ctr = 0
-            temperature =  5 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
+            temperature =  .05 * ((math.exp( (tmp_ctr % restart_time) * -(5/restart_time))) - math.exp(-5))
             #temperature = .00001 #for testing
             tmp_ctr += 1
             print('temp', temperature)
@@ -478,11 +480,13 @@ def main():
             #score = weight_seats * seat_score + weight_flips *  flip_score
             score = seat_score
 
-            print("current score", score)
+            print(i)
             if i != 1:
+                print(f"Proposal score: {score}. Current score: {chain_output['score'][-1]}" )
                 #print( math.exp(score), math.exp(chain_output['score'][-1]))
                 acceptance_criteria = (math.exp(score) / math.exp(chain_output['score'][-1]))**(1/temperature)
             else:
+                print(f"Proposal score: {score}. Current score: {base_score}" )
                 acceptance_criteria = (math.exp(score) / math.exp(base_score))**(1/temperature)
             logging.info("Main    : Step , %s , acceptance probability : %s", i, acceptance_criteria)
             #print ("step ", i , "acceptance probability ", acceptance_criteria)
@@ -502,8 +506,13 @@ def main():
             def reject_state():
                 """ Reject the next state of the meta-chain and propogate the current state of the meta-chain
                     """
-                for key in chain_output.keys():
-                    chain_output[key].append(chain_output[key][-1])
+                if i == 1:
+                    # hanling when rejection happens on the first step
+                    chain_output['score'].append(base_score)
+                    chain_output['acceptance_probability'].append(acceptance_criteria)
+                else:
+                    for key in chain_output.keys():
+                        chain_output[key].append(chain_output[key][-1])
             #logging.info("Main    :Chain probability so far: , %s", chain_output["acceptance_probability"])
             #print("Chain prbability so far: ", chain_output["acceptance_probability"] )
             #this is the simplified form of the acceptance criteria, for intuitive purposes
@@ -518,7 +527,7 @@ def main():
                 #reject changes
                 print('reject')
                 reject_state()
-            if i % 1500 == 0:
+            if i % restart_time == 0:
                 plt.plot(range(len(chain_output['acceptance_probability'])), chain_output['acceptance_probability'])
                 plt.xlabel("Meta-Chain Step")
                 plt.ylabel("Acceptance Probability")
@@ -565,7 +574,7 @@ if __name__ ==  '__main__':
         "ASSIGN_COL" : "part",
         "POP_COL" : "population",
         'SIERPINSKI_POP_STYLE': 'random',
-        'GERRYCHAIN_STEPS' : 100,
+        'GERRYCHAIN_STEPS' : 5,
         'CHAIN_STEPS' : 4500,
         'BASELINE_STEPS': 10000,
         "NUM_DISTRICTS": 13,
