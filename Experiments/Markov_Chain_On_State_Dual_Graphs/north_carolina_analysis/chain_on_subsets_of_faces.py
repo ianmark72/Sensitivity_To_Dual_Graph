@@ -464,7 +464,7 @@ def main():
                 logging.info(f"Main    : resetting temp counter, score {score} failed to pass threshold: {(threshold_to_beat - .1)}. starting validation thread %s")
             # print("resetting temp counter, score ", score, "failed to pass threshold", (threshold_to_beat - .1))
                 tmp_ctr = 0
-            temperature =  20 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
+            temperature =  5 * ((math.exp( (tmp_ctr % 1500) * -(5/1500))) - math.exp(-5))
             #temperature = .00001 #for testing
             tmp_ctr += 1
             print('temp', temperature)
