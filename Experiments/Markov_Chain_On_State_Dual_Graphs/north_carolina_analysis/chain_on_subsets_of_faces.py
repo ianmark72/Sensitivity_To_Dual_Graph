@@ -394,16 +394,16 @@ def main():
                 face_sierpinski_mesh(proposal_graph, special_faces_proposal)
             elif(config["PROPOSAL_TYPE"] == "add_edge"):
                 change_ctr = 0
-                for j in range(10): #range(math.floor(len(square_faces) * config['PERCENT_FACES'])):
+                for j in range(1): #range(math.floor(len(square_faces) * config['PERCENT_FACES'])):
                     # As above with percent faces it was making massive steps..
                     face = random.choice(square_faces)
                     ##Makes the Markov chain lazy -- this just makes the chain aperiodic.
-                    if random.random() > .5:
-                        if not (face in special_faces_proposal):
-                            change_ctr += 1
-                            special_faces_proposal.add(face)
-                        else:
-                            special_faces_proposal.remove(face)
+                    #if random.random() > .5: ## Not necessary, we aren't trying to sample.
+                    if not (face in special_faces_proposal):
+                        change_ctr += 1
+                        special_faces_proposal.add(face)
+                    else:
+                        special_faces_proposal.remove(face)
                 #print("num special faces", len(special_faces_proposal))
                 add_edge_proposal(proposal_graph, special_faces_proposal)
             elif(config["PROPOSAL_TYPE"] == "delete_edge"):
@@ -426,7 +426,7 @@ def main():
 
             if config['metachain_score'] == "gerrychain_score":
                 seat_score = gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
-
+                #previous_map_score = gerrychain_score(graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
             if config['metachain_score'] == "test_score":
                 seat_score = test_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
 
@@ -482,11 +482,12 @@ def main():
 
             print(i)
             if i != 1:
-                print(f"Proposal score: {score}. Current score: {chain_output['score'][-1]}" )
+                # Reran previous for {previous_map_score}.
+                print(f"Proposal score: {score}. Current score: {chain_output['score'][-1]}." )
                 #print( math.exp(score), math.exp(chain_output['score'][-1]))
                 acceptance_criteria = (math.exp(score) / math.exp(chain_output['score'][-1]))**(1/temperature)
             else:
-                print(f"Proposal score: {score}. Current score: {base_score}" )
+                print(f"Proposal score: {score}. Current score: {base_score}. " )
                 acceptance_criteria = (math.exp(score) / math.exp(base_score))**(1/temperature)
             logging.info("Main    : Step , %s , acceptance probability : %s", i, acceptance_criteria)
             #print ("step ", i , "acceptance probability ", acceptance_criteria)
@@ -574,9 +575,10 @@ if __name__ ==  '__main__':
         "ASSIGN_COL" : "part",
         "POP_COL" : "population",
         'SIERPINSKI_POP_STYLE': 'random',
-        'GERRYCHAIN_STEPS' : 100,
+        'GERRYCHAIN_STEPS' : 10000,
+        'GERRYCHAIN_SCORE_BURN_IN' : 100,
         'CHAIN_STEPS' : 4500,
-        'BASELINE_STEPS': 10000,
+        'BASELINE_STEPS': 20000,
         "NUM_DISTRICTS": 13,
         'STATE_NAME': 'north_carolina',
         'PERCENT_FACES': 1,
