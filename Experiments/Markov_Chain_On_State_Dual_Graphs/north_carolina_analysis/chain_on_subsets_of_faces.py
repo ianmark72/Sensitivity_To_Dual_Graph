@@ -352,10 +352,10 @@ def main():
     base_score = config['BASE_SCORE']
     if config['metachain_score'] == "gerrychain_score":
         if config['optimization_for'] == "R":
-            threshold_to_beat = base_score + .5
+            threshold_to_beat = base_score + 1
         if config['optimization_for'] == "D":
             base_score = k - base_score
-            threshold_to_beat = base_score + .5
+            threshold_to_beat = base_score + 1
     if config['metachain_score'] == "test_score":
         threshold_to_beat = test_score(graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k) + 10
     if config['metachain_score'] == "ising_score":
@@ -565,7 +565,7 @@ if __name__ ==  '__main__':
         "ASSIGN_COL" : "part",
         "POP_COL" : "population",
         'SIERPINSKI_POP_STYLE': 'random',
-        'GERRYCHAIN_STEPS' : 10,
+        'GERRYCHAIN_STEPS' : 100,
         'CHAIN_STEPS' : 4500,
         'BASELINE_STEPS': 10000,
         "NUM_DISTRICTS": 13,
