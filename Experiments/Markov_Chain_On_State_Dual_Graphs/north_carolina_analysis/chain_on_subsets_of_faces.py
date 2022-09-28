@@ -574,7 +574,7 @@ if __name__ ==  '__main__':
         "ASSIGN_COL" : "part",
         "POP_COL" : "population",
         'SIERPINSKI_POP_STYLE': 'random',
-        'GERRYCHAIN_STEPS' : 5,
+        'GERRYCHAIN_STEPS' : 100,
         'CHAIN_STEPS' : 4500,
         'BASELINE_STEPS': 10000,
         "NUM_DISTRICTS": 13,
