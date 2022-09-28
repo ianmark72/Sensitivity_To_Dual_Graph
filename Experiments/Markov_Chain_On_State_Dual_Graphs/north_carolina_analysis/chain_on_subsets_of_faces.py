@@ -230,9 +230,9 @@ def validate_map(seat_score, popbound, k, proposal_graph, special_faces, base_sc
     if config['optimization_for'] == "R":
         validated_seat_score = statistics.mean(seats_won_for_republicans)
     if config['optimization_for'] == "D":
-        validated_seat_score = k - statistics.mean(seats_won_for_democrats)
+        validated_seat_score = statistics.mean(seats_won_for_democrats)
 
-
+    print(f"Validated Seat Score: {validated_seat_score}")
     with open(os.path.join(output_directory, 'rep_seats.json') , 'w', encoding='utf-8') as f:
         json.dump(seats_won_for_republicans, f, ensure_ascii=False, indent=4)
     with open( os.path.join(output_directory, 'dem_seats.json') , 'w', encoding='utf-8') as f:
