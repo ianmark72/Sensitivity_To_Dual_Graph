@@ -426,7 +426,9 @@ def main():
 
             if config['metachain_score'] == "gerrychain_score":
                 seat_score = gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
-                #previous_map_score = gerrychain_score(graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
+                if config["RECOMPUTE_CURRENT_MAP_SCORE"]:
+                    previous_map_score = gerrychain_score(graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
+                    
             if config['metachain_score'] == "test_score":
                 seat_score = test_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
 
@@ -483,12 +485,25 @@ def main():
             print(i)
             if i != 1:
                 # Reran previous for {previous_map_score}.
-                print(f"Proposal score: {score}. Current score: {chain_output['score'][-1]}." )
-                #print( math.exp(score), math.exp(chain_output['score'][-1]))
-                acceptance_criteria = (math.exp(score) / math.exp(chain_output['score'][-1]))**(1/temperature)
+                if config["RECOMPUTE_CURRENT_MAP_SCORE"]:
+                    print(f"Proposal score: {score}. Current score (recomputed): {previous_map_score}." )
+                    #print( math.exp(score), math.exp(chain_output['score'][-1]))
+                    acceptance_criteria = (math.exp(score) / math.exp(previous_map_score) )**(1/temperature)
+                else:
+                    print(f"Proposal score: {score}. Current score (precomputed): {chain_output['score'][-1]}." )
+                    acceptance_criteria = (math.exp(score) / math.exp(chain_output['score'][-1]))**(1/temperature)
+                # This is computing:
+                #exp(score) / exp(previous_score)
+                #= exp ( score - previous_score)
+                #= exp ( E_{proposal_map}[seats] ) - E_{previous_map}[seats] )
+                #I think the natural thing to do is to recompute  E_{proposal_map}[seats] ) - E_{previous_map}[seats]  at each stage, instead of using a fixed value for  E_{previous_map}[seats]. This doesn't lock us in to unlucky samples in the same way.
             else:
-                print(f"Proposal score: {score}. Current score: {base_score}. " )
-                acceptance_criteria = (math.exp(score) / math.exp(base_score))**(1/temperature)
+                if config["RECOMPUTE_CURRENT_MAP_SCORE"]:
+                    print(f"Proposal score: {score}.  Current score (recomputed): {previous_map_score}. " )
+                    acceptance_criteria =  (math.exp(score) / math.exp(previous_map_score) )**(1/temperature)
+                else:
+                    print(f"Proposal score: {score}. Current score (precomputed): {base_score}." )
+                    acceptance_criteria = (math.exp(score) / math.exp(base_score))**(1/temperature)
             logging.info("Main    : Step , %s , acceptance probability : %s", i, acceptance_criteria)
             #print ("step ", i , "acceptance probability ", acceptance_criteria)
             ##This is the acceptance step of the Metropolis-Hasting's algorithm. Specifically, rand < min(1, P(x')/P(x)), where P is the energy and x' is proposed state
@@ -575,11 +590,12 @@ if __name__ ==  '__main__':
         "ASSIGN_COL" : "part",
         "POP_COL" : "population",
         'SIERPINSKI_POP_STYLE': 'random',
-        'GERRYCHAIN_STEPS' : 10000,
-        'GERRYCHAIN_SCORE_BURN_IN' : 100,
+        'GERRYCHAIN_STEPS' : 100,
+        'GERRYCHAIN_SCORE_BURN_IN' : 10,
         'CHAIN_STEPS' : 4500,
         'BASELINE_STEPS': 20000,
         "NUM_DISTRICTS": 13,
+        "RECOMPUTE_CURRENT_MAP_SCORE" : True,
         'STATE_NAME': 'north_carolina',
         'PERCENT_FACES': 1,
         'PROPOSAL_TYPE': ["delete_edge", "add_edge"][1],

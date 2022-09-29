@@ -28,7 +28,7 @@ from gerrychain import GeographicPartition
 from gerrychain.partition import Partition
 from gerrychain.proposals import recom
 from gerrychain.metrics import mean_median, efficiency_gap
-from gerrychain.tree import recursive_tree_part, bipartition_tree_random, PopulatedGraph
+from gerrychain.tree import recursive_tree_part, bipartition_tree_random, PopulatedGraph, random_spanning_tree
 from collections import defaultdict
 from datetime import datetime
 import time
@@ -47,6 +47,8 @@ git push
 '''
 
 def fast_tree_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k):
+    tree= random_spanning_tree(proposal_graph)
+    # The idea here is just to make spanning tree samples.
 
     return 0
 
