@@ -428,7 +428,7 @@ def main():
                 seat_score = gerrychain_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
                 if config["RECOMPUTE_CURRENT_MAP_SCORE"]:
                     previous_map_score = gerrychain_score(graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
-                    
+
             if config['metachain_score'] == "test_score":
                 seat_score = test_score(proposal_graph, graph, config, updaters, epsilon, ideal_population, gerrychain_steps, accept, k)
 
@@ -608,7 +608,7 @@ if __name__ ==  '__main__':
         'EXPERIMENT_START': str(datetime.now()),
         'BASE_SCORE': 7.75,
         'metachain_score' : ["gerrychain_score", "test_score", "ising_score"][0],  #"test_score" #
-        'optimization_for' : "D"
+        'optimization_for' : "R"
     }
     # Seanna: so in here the number of districts is 12 (maybe we want to revise it?)
     main()
