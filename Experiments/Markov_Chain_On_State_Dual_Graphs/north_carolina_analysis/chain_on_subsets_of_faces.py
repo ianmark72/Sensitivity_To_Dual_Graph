@@ -394,7 +394,7 @@ def main():
                 face_sierpinski_mesh(proposal_graph, special_faces_proposal)
             elif(config["PROPOSAL_TYPE"] == "add_edge"):
                 change_ctr = 0
-                for j in range(1): #range(math.floor(len(square_faces) * config['PERCENT_FACES'])):
+                for j in range(20): #range(math.floor(len(square_faces) * config['PERCENT_FACES'])):
                     # As above with percent faces it was making massive steps..
                     face = random.choice(square_faces)
                     ##Makes the Markov chain lazy -- this just makes the chain aperiodic.
@@ -590,7 +590,7 @@ if __name__ ==  '__main__':
         "ASSIGN_COL" : "part",
         "POP_COL" : "population",
         'SIERPINSKI_POP_STYLE': 'random',
-        'GERRYCHAIN_STEPS' : 100,
+        'GERRYCHAIN_STEPS' : 20000,
         'GERRYCHAIN_SCORE_BURN_IN' : 10,
         'CHAIN_STEPS' : 4500,
         'BASELINE_STEPS': 20000,
