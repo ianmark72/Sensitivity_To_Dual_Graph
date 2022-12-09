@@ -67,17 +67,19 @@ def main():
 
     return graph
 
-def impute_down(coarse_partition = "VTD", coarse_id = "vtdid", coarse_field_to_impute = "VOTE",
-                 fine_partition = "BLOCKS", fine_id = "blockid"):
-     """
+def impute_down(coarse_partition = "VTD", coarse_id = "vtdid", coard_pop_field = "POP", coarse_field_to_impute = "VOTE",
+                 fine_partition = "BLOCKS", fine_id = "blockid", fine_pop_field = "POP", fine_pop_demographics = None):
+    """
     Imputes values from a coarse partition to a fine partition.
     
     Args:
         coarse_partition (GeoDataFrame): The coarse partition.
         coarse_id (str): The ID field for the coarse partition.
+        coarse_pop_field (str) : The population field for the coarse partition.
         coarse_field_to_impute (str): The field to impute from the coarse partition.
         fine_partition (GeoDataFrame): The fine partition.
         fine_id (str): The ID field for the fine partition.
+        fine_pop_field (str) : The population field for the fine partition.
         
     Returns:
         fine_partition (GeoDataFrame): The fine partition with imputed values.
@@ -102,7 +104,10 @@ def impute_down(coarse_partition = "VTD", coarse_id = "vtdid", coarse_field_to_i
     joined_with_geos['area_proportion'] =  joined_with_geos['intersect_area'] / joined_with_geos['geo_fine_area']
 
 
-    geo_with_vtd_shape_data = geo_with_vtd_shape_data[geo_with_vtd_shape_data.area_proportion >= .99]
+    joined_with_geos_filtered = joined_with_geos[joined_with_geos.area_proportion >= .99]
+
+    if len(joined_with_geos_filtered) / len(fine_partition) < .5:
+        logging.warning("Lost most of the fine partition")
 
     
 
@@ -164,7 +169,7 @@ def partition_blocks_by_vtds(VTD_shp_file,
     geo_with_vtd_shape_data = geo_with_vtd_shape_data[geo_with_vtd_shape_data.area_proportion >= .99]
 
     if len(geo_with_vtd_shape_data) / size_before < .5:
-        logging.log("Lost most of the subpartition bocks", level = Warning)
+        logging.warning("Lost most of the subpartition bocks")
     # Impute votes
     # Later replace this with EI.
 
